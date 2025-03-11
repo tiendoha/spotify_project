@@ -19,7 +19,7 @@ class ArtistSerializer(serializers.ModelSerializer):
 class AlbumSerializers(serializers.ModelSerializer):
     class Meta:
         model = Album
-        field = ['id', 'name', 'release_date', 'image', 'artist']
+        fields = '__all__'
 
 class TrackSerializer(serializers.ModelSerializer):
     class Meta:

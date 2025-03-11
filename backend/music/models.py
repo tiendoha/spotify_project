@@ -3,19 +3,31 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class User(AbstractUser):
+    # Xóa các trường mặc định không có trong CSDL
+    last_login = None
+    is_superuser = None
+    is_staff = None
+    is_active = None
+    first_name = None
+    last_name = None
+
     email = models.EmailField(max_length=254, unique=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    date_joined = models.DateTimeField()  # Sửa thành DateTimeField
 
     class Meta:
         db_table = 'auth_user'
 
+
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    id = models.AutoField(primary_key=True)  # Thêm trường này
+    user = models.OneToOneField(User, on_delete=models.CASCADE, db_column='user_id')
     date_of_birth = models.DateField(null=True, blank=True)
     profile_image = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'profiles'
+
+
 
 class Artist(models.Model):
     GENRE_CHOICES = [
@@ -58,29 +70,31 @@ class Playlist(models.Model):
         db_table = 'playlists'
 
 class PlaylistTrack(models.Model):
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True)  # Thêm trường này
+    playlist = models.ForeignKey('Playlist', on_delete=models.CASCADE, db_column='playlist_id')
+    track = models.ForeignKey('Track', on_delete=models.CASCADE, db_column='track_id')
     track_order = models.IntegerField()
 
     class Meta:
         db_table = 'playlist_tracks'
-        unique_together = [('playlist', 'track_order')]  # Tuple lồng nhau
-        constraints = [
-            models.CheckConstraint(check=models.Q(track_order__gte=0), name='track_order_gte_0')
-        ]
+        unique_together = [('playlist', 'track_order')]
+
 
 class Follower(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True)  # Thêm trường này
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id')
+    artist = models.ForeignKey('Artist', on_delete=models.CASCADE, db_column='artist_id')
 
     class Meta:
         db_table = 'followers'
         unique_together = ('user', 'artist')
 
+
 class Like(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    liked_at = models.DateField(auto_now_add=True)
+    id = models.AutoField(primary_key=True)  # Thêm trường này
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id')
+    track = models.ForeignKey('Track', on_delete=models.CASCADE, db_column='track_id')
+    liked_at = models.DateTimeField(auto_now_add=True)  # Sửa thành DateTimeField
 
     class Meta:
         db_table = 'likes'
