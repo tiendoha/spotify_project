@@ -83,7 +83,7 @@ INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 
 INSERT INTO artists (id, name, genre, image) VALUES
 (1, 'Taylor Swift', 'pop', '/artists/taylor.jpg'),
-(2, 'Kendrick Lamar', 'rap', '/artists/kendrick.jpg'),
+(2, 'Kendrick Lamar', 'pop', '/artists/kendrick.jpg'),  -- Sửa 'rap' thành 'pop'
 (3, 'Billie Eilish', 'jazz', '/artists/billie.jpg');
 
 INSERT INTO albums (id, name, release_date, image, artist_id) VALUES
