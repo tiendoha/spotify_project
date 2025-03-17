@@ -1,5 +1,13 @@
+-- Xóa database cũ (nếu cần) và tạo mới --
+DROP DATABASE IF EXISTS music_app;
+CREATE DATABASE music_app;
 
-CREATE TABLE auth_user (
+-- Kết nối tới database --
+\c music_app
+
+-- Tạo các bảng --
+
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(150) NOT NULL UNIQUE,
     email VARCHAR(254) NOT NULL,
@@ -9,7 +17,7 @@ CREATE TABLE auth_user (
 
 CREATE TABLE profiles (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL UNIQUE REFERENCES auth_user(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     date_of_birth DATE,
     profile_image VARCHAR(255)
 );
@@ -42,7 +50,7 @@ CREATE TABLE playlists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     image VARCHAR(255),
-    user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE playlist_tracks (
@@ -55,28 +63,29 @@ CREATE TABLE playlist_tracks (
 
 CREATE TABLE followers (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
     CONSTRAINT unique_follow UNIQUE (user_id, artist_id)
 );
 
 CREATE TABLE likes (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
     liked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_like UNIQUE (user_id, track_id)
 );
 
--- Chèn dữ liệu --
+-- Chèn dữ liệu vào các bảng --
 
-INSERT INTO auth_user (id, username, email, password, date_joined) VALUES
+-- Users
+INSERT INTO users (id, username, email, password, date_joined) VALUES
 (1, 'user1', 'user1@example.com', 'hashed_password1', '2025-03-01 10:00:00'),
 (2, 'user2', 'user2@example.com', 'hashed_password2', '2025-03-02 15:30:00'),
-(3, 'user3', 'user3@example.com', 'hashed_password3', '2025-03-03 09:15:00');
+(3, 'user3', 'user3@example.com', 'hashed_password3', '2025-03-03 09:15:00'),
 (4, 'user4', 'user4@example.com', 'hashed_password4', '2025-03-05 14:00:00'),
 (5, 'user5', 'user5@example.com', 'hashed_password5', '2025-03-06 09:30:00'),
-(6, 'user6', 'user6@example.com', 'hashed_password6', '2025-03-07 11:15:00');
+(6, 'user6', 'user6@example.com', 'hashed_password6', '2025-03-07 11:15:00'),
 (7, 'john_doe', 'john@example.com', 'hashed_password7', '2025-03-08 08:00:00'),
 (8, 'jane_smith', 'jane@example.com', 'hashed_password8', '2025-03-08 09:00:00'),
 (9, 'mike_jones', 'mike@example.com', 'hashed_password9', '2025-03-08 10:00:00'),
@@ -98,63 +107,67 @@ INSERT INTO auth_user (id, username, email, password, date_joined) VALUES
 (25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00'),
 (26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00');
 
+-- Profiles
 INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (1, 1, '1995-05-15', '/profiles/user1.jpg'),
 (2, 2, '2000-12-25', '/profiles/user2.png'),
-(3, 3, '1998-07-10', NULL);
-(4, 4, '1990-08-20', '/profiles/user4.jpg'),
+(3, 3, '1998-07-10', NULL),
+(4, 4, '1990-08-20', '/profiles/user4.png'),
 (5, 5, '2002-03-12', '/profiles/user5.png'),
-(6, 6, '1985-11-30', NULL);
-(7, 7, '1992-01-15', '/profiles/john.jpg'),
+(6, 6, '1985-11-30', NULL),
+(7, 7, '1992-01-15', '/profiles/john.png'),
 (8, 8, '1993-02-20', '/profiles/jane.png'),
 (9, 9, '1988-03-25', NULL),
-(10, 10, '1995-04-10', '/profiles/emma.jpg'),
+(10, 10, '1995-04-10', '/profiles/emma.png'),
 (11, 11, '1996-05-05', '/profiles/peter.png'),
 (12, 12, '1987-06-15', NULL),
-(13, 13, '1990-07-20', '/profiles/david.jpg'),
+(13, 13, '1990-07-20', '/profiles/david.png'),
 (14, 14, '1985-08-25', '/profiles/linda.png'),
 (15, 15, '1991-09-30', NULL),
-(16, 16, '1994-10-10', '/profiles/natasha.jpg'),
+(16, 16, '1994-10-10', '/profiles/natasha.png'),
 (17, 17, '1989-11-15', '/profiles/tony.png'),
 (18, 18, '1986-12-20', NULL),
-(19, 19, '1993-01-25', '/profiles/clark.jpg'),
+(19, 19, '1993-01-25', '/profiles/clark.png'),
 (20, 20, '1997-02-28', '/profiles/diana.png'),
 (21, 21, '1988-03-15', NULL),
-(22, 22, '1995-04-20', '/profiles/wanda.jpg'),
+(22, 22, '1995-04-20', '/profiles/wanda.png'),
 (23, 23, '1992-05-25', '/profiles/thor.png'),
 (24, 24, '1990-06-30', NULL),
-(25, 25, '1996-07-10', '/profiles/gamora.jpg'),
+(25, 25, '1996-07-10', '/profiles/gamora.png'),
 (26, 26, '1994-08-15', '/profiles/peterq.png');
 
+-- Artists
 INSERT INTO artists (id, name, genre, image) VALUES
-(1, 'Taylor Swift', 'pop', '/artists/taylor.jpg'),
-(2, 'Kendrick Lamar', 'rap', '/artists/kendrick.jpg'),
-(3, 'Billie Eilish', 'jazz', '/artists/billie.jpg');
-(4, 'The Beatles', 'rock', '/artists/beatles.jpg'),
-(5, 'Miles Davis', 'jazz', '/artists/miles.jpg'),
-(6, 'Adele', 'pop', '/artists/adele.jpg'),
-(7, 'Nirvana', 'rock', '/artists/nirvana.jpg'),
-(8, 'Ella Fitzgerald', 'jazz', '/artists/ella.jpg');
+(1, 'Taylor Swift', 'pop', '/artists/taylor.png'),
+(2, 'Kendrick Lamar', 'pop', '/artists/kendrick.png'), 
+(3, 'Billie Eilish', 'jazz', '/artists/billie.png'),
+(4, 'The Beatles', 'rock', '/artists/beatles.png'),
+(5, 'Miles Davis', 'jazz', '/artists/miles.png'),
+(6, 'Adele', 'pop', '/artists/adele.png'),
+(7, 'Nirvana', 'rock', '/artists/nirvana.png'),
+(8, 'Ella Fitzgerald', 'jazz', '/artists/ella.png');
 
+-- Albums
 INSERT INTO albums (id, name, release_date, image, artist_id) VALUES
 (1, 'I Can Do It With A Broken Heart', '2020-12-11', '/albums/broken-heart.jpeg', 1),
 (2, 'GNX', '1991-09-24', '/albums/GNX.jpeg', 2),
-(3, 'Hit Me Hard and Soft', '1959-08-17', '/albums/hit-harder.jpeg', 3);
-(4, 'Abbey Road', '1969-09-26', '/albums/abbey_road.jpg', 4),
-(5, 'Kind of Blue', '1959-08-17', '/albums/kind_of_blue.jpg', 5),
-(6, '25', '2015-11-20', '/albums/25.jpg', 6),
-(7, 'Nevermind', '1991-09-24', '/albums/nevermind.jpg', 7),
-(8, 'Ella and Louis', '1956-10-01', '/albums/ella_louis.jpg', 8),
-(9, 'Reputation', '2017-11-10', '/albums/reputation.jpg', 1),
-(10, 'Damn', '2017-04-14', '/albums/damn.jpg', 2);
+(3, 'Hit Me Hard and Soft', '1959-08-17', '/albums/hit-harder.jpeg', 3),
+(4, 'Abbey Road', '1969-09-26', '/albums/abbey_road.png', 4),
+(5, 'Kind of Blue', '1959-08-17', '/albums/kind_of_blue.png', 5),
+(6, '25', '2015-11-20', '/albums/25.png', 6),
+(7, 'Nevermind', '1991-09-24', '/albums/nevermind.png', 7),
+(8, 'Ella and Louis', '1956-10-01', '/albums/ella_louis.png', 8),
+(9, 'Reputation', '2017-11-10', '/albums/reputation.png', 1),
+(10, 'Damn', '2017-04-14', '/albums/damn.png', 2);
 
+-- Tracks
 INSERT INTO tracks (id, name, duration, file, artist_id, album_id) VALUES
 (1, 'Willow', '00:03:34', '/tracks/willow.mp3', 1, 1),
 (2, 'Champagne Problems', '00:04:04', '/tracks/champagne.mp3', 1, 1),
 (3, 'Smells Like Teen Spirit', '00:05:01', '/tracks/teen_spirit.mp3', 2, 2),
 (4, 'Come As You Are', '00:03:38', '/tracks/come_as_you_are.mp3', 2, 2),
 (5, 'So What', '00:09:22', '/tracks/so_what.mp3', 3, 3),
-(6, 'Shake It Off', '00:03:39', '/tracks/shake_it_off.mp3', 1, NULL);
+(6, 'Shake It Off', '00:03:39', '/tracks/shake_it_off.mp3', 1, NULL),
 (7, 'Come Together', '00:04:19', '/tracks/come_together.mp3', 4, 4),
 (8, 'Something', '00:03:02', '/tracks/something.mp3', 4, 4),
 (9, 'Here Comes the Sun', '00:03:06', '/tracks/here_comes_the_sun.mp3', 4, 4),
@@ -186,12 +199,13 @@ INSERT INTO tracks (id, name, duration, file, artist_id, album_id) VALUES
 (35, 'Rape Me', '00:02:50', '/tracks/rape_me.mp3', 7, NULL),
 (36, 'Misty', '00:03:00', '/tracks/misty.mp3', 8, NULL);
 
+-- Playlists
 INSERT INTO playlists (id, name, image, user_id) VALUES
 (1, 'My Pop Hits', '/playlists/pop_hits.jpg', 1),
-(2, 'Rock Classics', '/playlists/rock_classics.jpg', 2);
+(2, 'Rock Classics', '/playlists/rock_classics.jpg', 2),
 (3, 'Jazz Vibes', '/playlists/jazz_vibes.jpg', 4),
 (4, 'Rock Legends', '/playlists/rock_legends.jpg', 5),
-(5, 'Pop Favorites', '/playlists/pop_favorites.jpg', 6);
+(5, 'Pop Favorites', '/playlists/pop_favorites.jpg', 6),
 (6, 'Morning Pop', '/playlists/morning_pop.jpg', 7),
 (7, 'Rock Nights', '/playlists/rock_nights.jpg', 8),
 (8, 'Jazz Chill', '/playlists/jazz_chill.jpg', 9),
@@ -213,12 +227,13 @@ INSERT INTO playlists (id, name, image, user_id) VALUES
 (24, 'Pop Hits 2025', '/playlists/pop_hits_2025.jpg', 25),
 (25, 'Rock Revival', '/playlists/rock_revival.jpg', 26);
 
+-- Playlist Tracks
 INSERT INTO playlist_tracks (id, playlist_id, track_id, track_order) VALUES
 (1, 1, 1, 0),
 (2, 1, 2, 1),
 (3, 1, 6, 2),
 (4, 2, 3, 0),
-(5, 2, 4, 1);
+(5, 2, 4, 1),
 (6, 3, 10, 0),  -- Jazz Vibes: Blue in Green
 (7, 3, 11, 1),  -- Jazz Vibes: Freddie Freeloader
 (8, 3, 17, 2),  -- Jazz Vibes: Summertime
@@ -230,7 +245,7 @@ INSERT INTO playlist_tracks (id, playlist_id, track_id, track_order) VALUES
 (14, 5, 12, 0), -- Pop Favorites: Hello
 (15, 5, 13, 1), -- Pop Favorites: Rolling in the Deep
 (16, 5, 19, 2), -- Pop Favorites: Blank Space
-(17, 5, 29, 3); -- Pop Favorites: Love Story
+(17, 5, 29, 3), -- Pop Favorites: Love Story
 (18, 6, 12, 0),  -- Morning Pop: Hello
 (19, 6, 19, 1),  -- Morning Pop: Blank Space
 (20, 7, 7, 0),   -- Rock Nights: Come Together
@@ -272,16 +287,17 @@ INSERT INTO playlist_tracks (id, playlist_id, track_id, track_order) VALUES
 (56, 25, 7, 0),  -- Rock Revival: Come Together
 (57, 25, 32, 1); -- Rock Revival: Hey Jude
 
+-- Followers
 INSERT INTO followers (id, user_id, artist_id) VALUES
 (1, 1, 1),
 (2, 2, 2),
 (3, 3, 3),
-(4, 1, 3);
+(4, 1, 3),
 (5, 4, 5),  -- user4 follows Miles Davis
 (6, 5, 4),  -- user5 follows The Beatles
 (7, 6, 6),  -- user6 follows Adele
 (8, 4, 8),  -- user4 follows Ella Fitzgerald
-(9, 5, 7);  -- user5 follows Nirvana
+(9, 5, 7),  -- user5 follows Nirvana
 (10, 7, 6),   -- john_doe follows Adele
 (11, 8, 4),   -- jane_smith follows The Beatles
 (12, 9, 5),   -- mike_jones follows Miles Davis
@@ -303,19 +319,18 @@ INSERT INTO followers (id, user_id, artist_id) VALUES
 (28, 25, 1),  -- gamora_zen follows Taylor Swift
 (29, 26, 7);  -- peter_quill follows Nirvana
 
--- Thêm dữ liệu vào likes
-
+-- Likes
 INSERT INTO likes (id, user_id, track_id, liked_at) VALUES
 (1, 1, 1, '2025-03-04 12:00:00'),
 (2, 1, 3, '2025-03-04 12:05:00'),
 (3, 2, 4, '2025-03-04 14:30:00'),
-(4, 3, 5, '2025-03-04 15:00:00');
+(4, 3, 5, '2025-03-04 15:00:00'),
 (5, 4, 10, '2025-03-05 15:00:00'), -- user4 likes Blue in Green
 (6, 4, 17, '2025-03-05 15:05:00'), -- user4 likes Summertime
 (7, 5, 7, '2025-03-06 10:00:00'),  -- user5 likes Come Together
 (8, 5, 16, '2025-03-06 10:10:00'), -- user5 likes Lithium
 (9, 6, 12, '2025-03-07 12:00:00'), -- user6 likes Hello
-(10, 6, 19, '2025-03-07 12:05:00'); -- user6 likes Blank Space
+(10, 6, 19, '2025-03-07 12:05:00'), -- user6 likes Blank Space
 (11, 7, 12, '2025-03-08 08:30:00'),  -- john_doe likes Hello
 (12, 8, 7, '2025-03-08 09:30:00'),   -- jane_smith likes Come Together
 (13, 9, 10, '2025-03-08 10:30:00'),  -- mike_jones likes Blue in Green
