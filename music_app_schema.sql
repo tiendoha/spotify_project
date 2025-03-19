@@ -12,7 +12,8 @@ CREATE TABLE users (
     username VARCHAR(150) NOT NULL UNIQUE,
     email VARCHAR(254) NOT NULL,
     password VARCHAR(128) NOT NULL,
-    date_joined TIMESTAMP NOT NULL
+    date_joined TIMESTAMP NOT NULL,
+    role INTEGER NOT NULL DEFAULT 1 CHECK (role IN (1, 2))
 );
 
 CREATE TABLE profiles (
@@ -102,6 +103,29 @@ CREATE TABLE shared_listening_invitations (
 );
 
 CREATE INDEX shared_listening_idx ON shared_listening_invitations (sender_id, receiver_id);
+
+CREATE TABLE music_videos (
+    id SERIAL PRIMARY KEY,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    video_file VARCHAR(255) NOT NULL,
+    duration INTERVAL,
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_albums (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    image VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE user_album_tracks (
+    id SERIAL PRIMARY KEY,
+    user_album_id INTEGER NOT NULL REFERENCES user_albums(id) ON DELETE CASCADE,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    track_order INTEGER NOT NULL CHECK (track_order >= 0),
+    CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
+);
 
 -- Users
 INSERT INTO users (id, username, email, password, date_joined) VALUES
