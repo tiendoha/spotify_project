@@ -77,6 +77,31 @@ CREATE TABLE likes (
 );
 
 -- Chèn dữ liệu vào các bảng --
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Tạo chỉ mục để tăng hiệu suất truy vấn
+CREATE INDEX messages_sender_receiver_idx ON messages (sender_id, receiver_id);
+
+CREATE TABLE shared_listening_invitations (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    start_time TIMESTAMP NOT NULL, -- Thời điểm bắt đầu phát nhạc của sender
+    current_position INTERVAL NOT NULL, -- Vị trí hiện tại của bài hát (tính bằng giây)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
+    CONSTRAINT unique_invitation UNIQUE (sender_id, receiver_id, track_id)
+);
+
+CREATE INDEX shared_listening_idx ON shared_listening_invitations (sender_id, receiver_id);
 
 -- Users
 INSERT INTO users (id, username, email, password, date_joined) VALUES
