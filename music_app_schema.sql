@@ -12,7 +12,8 @@ CREATE TABLE users (
     username VARCHAR(150) NOT NULL UNIQUE,
     email VARCHAR(254) NOT NULL,
     password VARCHAR(128) NOT NULL,
-    date_joined TIMESTAMP NOT NULL
+    date_joined TIMESTAMP NOT NULL,
+    role INTEGER NOT NULL DEFAULT 1 CHECK (role IN (1, 2))
 );
 
 CREATE TABLE profiles (
@@ -77,6 +78,54 @@ CREATE TABLE likes (
 );
 
 -- Chèn dữ liệu vào các bảng --
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Tạo chỉ mục để tăng hiệu suất truy vấn
+CREATE INDEX messages_sender_receiver_idx ON messages (sender_id, receiver_id);
+
+CREATE TABLE shared_listening_invitations (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    start_time TIMESTAMP NOT NULL, -- Thời điểm bắt đầu phát nhạc của sender
+    current_position INTERVAL NOT NULL, -- Vị trí hiện tại của bài hát (tính bằng giây)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
+    CONSTRAINT unique_invitation UNIQUE (sender_id, receiver_id, track_id)
+);
+
+CREATE INDEX shared_listening_idx ON shared_listening_invitations (sender_id, receiver_id);
+
+CREATE TABLE music_videos (
+    id SERIAL PRIMARY KEY,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    video_file VARCHAR(255) NOT NULL,
+    duration INTERVAL,
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_albums (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    image VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE user_album_tracks (
+    id SERIAL PRIMARY KEY,
+    user_album_id INTEGER NOT NULL REFERENCES user_albums(id) ON DELETE CASCADE,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    track_order INTEGER NOT NULL CHECK (track_order >= 0),
+    CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
+);
 
 -- Users
 INSERT INTO users (id, username, email, password, date_joined) VALUES
@@ -351,3 +400,160 @@ INSERT INTO likes (id, user_id, track_id, liked_at) VALUES
 (28, 24, 34, '2025-03-12 11:30:00'), -- loki_laufeyson likes Skyfall
 (29, 25, 29, '2025-03-13 12:30:00'), -- gamora_zen likes Love Story
 (30, 26, 35, '2025-03-13 13:30:00'); -- peter_quill likes Rape Me
+
+INSERT INTO music_videos (id, track_id, video_file, duration, uploaded_at) VALUES
+(1, 1, '/videos/willow.mp4', '00:03:40', '2025-03-04 10:00:00'),
+(2, 2, '/videos/champagne_problems.mp4', '00:04:10', '2025-03-04 10:05:00'),
+(3, 3, '/videos/smells_like_teen_spirit.mp4', '00:05:10', '2025-03-04 10:10:00'),
+(4, 4, '/videos/come_as_you_are.mp4', '00:03:45', '2025-03-04 10:15:00'),
+(5, 5, '/videos/so_what.mp4', '00:09:30', '2025-03-04 10:20:00'),
+(6, 6, '/videos/shake_it_off.mp4', '00:03:45', '2025-03-04 10:25:00'),
+(7, 7, '/videos/come_together.mp4', '00:04:25', '2025-03-04 10:30:00'),
+(8, 8, '/videos/something.mp4', '00:03:10', '2025-03-04 10:35:00'),
+(9, 9, '/videos/here_comes_the_sun.mp4', '00:03:15', '2025-03-04 10:40:00'),
+(10, 10, '/videos/blue_in_green.mp4', '00:05:45', '2025-03-04 10:45:00'),
+(11, 11, '/videos/freddie_freeloader.mp4', '00:09:50', '2025-03-04 10:50:00'),
+(12, 12, '/videos/hello.mp4', '00:05:00', '2025-03-04 10:55:00'),
+(13, 13, '/videos/rolling_in_the_deep.mp4', '00:03:55', '2025-03-04 11:00:00'),
+(14, 14, '/videos/someone_like_you.mp4', '00:04:50', '2025-03-04 11:05:00'),
+(15, 15, '/videos/breed.mp4', '00:03:10', '2025-03-04 11:10:00'),
+(16, 16, '/videos/lithium.mp4', '00:04:25', '2025-03-04 11:15:00'),
+(17, 17, '/videos/summertime.mp4', '00:05:05', '2025-03-04 11:20:00'),
+(18, 18, '/videos/cheek_to_cheek.mp4', '00:06:00', '2025-03-04 11:25:00'),
+(19, 19, '/videos/blank_space.mp4', '00:04:00', '2025-03-04 11:30:00'),
+(20, 20, '/videos/bad_blood.mp4', '00:03:40', '2025-03-04 11:35:00'),
+(21, 21, '/videos/humble.mp4', '00:03:00', '2025-03-04 11:40:00'),
+(22, 22, '/videos/dna.mp4', '00:03:10', '2025-03-04 11:45:00'),
+(23, 23, '/videos/yesterday.mp4', '00:02:10', '2025-03-04 11:50:00'),
+(24, 24, '/videos/let_it_be.mp4', '00:04:10', '2025-03-04 11:55:00'),
+(25, 25, '/videos/all_of_me.mp4', '00:04:35', '2025-03-04 12:00:00'),
+(26, 26, '/videos/set_fire_to_the_rain.mp4', '00:04:10', '2025-03-04 12:05:00'),
+(27, 27, '/videos/heart_shaped_box.mp4', '00:04:50', '2025-03-04 12:10:00'),
+(28, 28, '/videos/my_funny_valentine.mp4', '00:05:10', '2025-03-04 12:15:00'),
+(29, 29, '/videos/love_story.mp4', '00:04:00', '2025-03-04 12:20:00'),
+(30, 30, '/videos/loyalty.mp4', '00:03:55', '2025-03-04 12:25:00'),
+(31, 31, '/videos/bad_guy.mp4', '00:03:20', '2025-03-04 12:30:00'),
+(32, 32, '/videos/hey_jude.mp4', '00:07:20', '2025-03-04 12:35:00'),
+(33, 33, '/videos/so_what_live.mp4', '00:08:50', '2025-03-04 12:40:00'),
+(34, 34, '/videos/skyfall.mp4', '00:04:55', '2025-03-04 12:45:00'),
+(35, 35, '/videos/rape_me.mp4', '00:03:00', '2025-03-04 12:50:00'),
+(36, 36, '/videos/misty.mp4', '00:03:05', '2025-03-04 12:55:00');
+
+INSERT INTO user_albums (id, name, user_id, image, created_at) VALUES
+(1, 'User1 Favorites', 1, '/user_albums/favs_user1.jpg', '2025-03-04 12:00:00'),
+(2, 'Admin Chill Vibes', 2, '/user_albums/chill_admin.jpg', '2025-03-04 13:00:00'),
+(3, 'User2 Pop Hits', 3, '/user_albums/pop_user2.jpg', '2025-03-04 14:00:00'),
+(4, 'User1 Rock Collection', 1, '/user_albums/rock_user1.jpg', '2025-03-04 15:00:00'),
+(5, 'Admin Jazz Mix', 2, '/user_albums/jazz_admin.jpg', '2025-03-04 16:00:00'),
+(6, 'User3 Party Playlist', 3, '/user_albums/party_user3.jpg', '2025-03-04 17:00:00'),
+(7, 'User4 Study Tunes', 4, '/user_albums/study_user4.jpg', '2025-03-04 18:00:00'),
+(8, 'User5 Road Trip', 5, '/user_albums/road_user5.jpg', '2025-03-04 19:00:00'),
+(9, 'User2 Oldies', 3, '/user_albums/oldies_user2.jpg', '2025-03-04 20:00:00'),
+(10, 'Admin Top Hits', 2, '/user_albums/top_admin.jpg', '2025-03-04 21:00:00'),
+(11, 'User1 Summer Vibes', 1, '/user_albums/summer_user1.jpg', '2025-03-05 09:00:00'),
+(12, 'User3 Dance Mix', 3, '/user_albums/dance_user3.jpg', '2025-03-05 10:00:00'),
+(13, 'User4 Relaxing Evening', 4, '/user_albums/relax_user4.jpg', '2025-03-05 11:00:00'),
+(14, 'User5 Workout Energy', 5, '/user_albums/workout_user5.jpg', '2025-03-05 12:00:00'),
+(15, 'Admin Classic Rock', 2, '/user_albums/classic_admin.jpg', '2025-03-05 13:00:00'),
+(16, 'User1 Late Night', 1, '/user_albums/night_user1.jpg', '2025-03-05 14:00:00'),
+(17, 'User2 Indie Picks', 3, '/user_albums/indie_user2.jpg', '2025-03-05 15:00:00'),
+(18, 'User4 Morning Boost', 4, '/user_albums/morning_user4.jpg', '2025-03-05 16:00:00'),
+(19, 'User5 Retro Beats', 5, '/user_albums/retro_user5.jpg', '2025-03-05 17:00:00'),
+(20, 'Admin Best of 2025', 2, '/user_albums/best_admin.jpg', '2025-03-05 18:00:00');
+
+INSERT INTO user_album_tracks (id, user_album_id, track_id, track_order) VALUES
+(1, 1, 1, 0),    -- User1 Favorites
+(2, 1, 4, 1),
+(3, 1, 19, 2),
+(4, 2, 2, 0),    -- Admin Chill Vibes
+(5, 2, 5, 1),
+(6, 2, 25, 2),
+(7, 3, 6, 0),    -- User2 Pop Hits
+(8, 3, 13, 1),
+(9, 3, 20, 2),
+(10, 4, 3, 0),   -- User1 Rock Collection
+(11, 4, 15, 1),
+(12, 4, 27, 2),
+(13, 5, 10, 0),  -- Admin Jazz Mix
+(14, 5, 17, 1),
+(15, 5, 28, 2),
+(16, 6, 7, 0),   -- User3 Party Playlist
+(17, 6, 12, 1),
+(18, 6, 21, 2),
+(19, 7, 8, 0),   -- User4 Study Tunes
+(20, 7, 11, 1),
+(21, 7, 25, 2),
+(22, 8, 9, 0),   -- User5 Road Trip
+(23, 8, 16, 1),
+(24, 8, 32, 2),
+(25, 9, 23, 0),  -- User2 Oldies
+(26, 9, 24, 1),
+(27, 9, 28, 2),
+(28, 10, 14, 0), -- Admin Top Hits
+(29, 10, 22, 1),
+(30, 10, 34, 2),
+(31, 11, 19, 0), -- User1 Summer Vibes
+(32, 11, 29, 1),
+(33, 12, 6, 0),  -- User3 Dance Mix
+(34, 12, 20, 1),
+(35, 13, 5, 0),  -- User4 Relaxing Evening
+(36, 13, 17, 1),
+(37, 14, 21, 0), -- User5 Workout Energy
+(38, 14, 27, 1),
+(39, 15, 3, 0),  -- Admin Classic Rock
+(40, 15, 15, 1);
+
+
+INSERT INTO messages (id, sender_id, receiver_id, content, sent_at, is_read) VALUES
+(1, 1, 2, 'Hey, check out this song!', '2025-03-04 12:10:00', FALSE),
+(2, 2, 1, 'Cool, thanks!', '2025-03-04 12:15:00', TRUE),
+(3, 3, 1, 'Hi, any good playlists?', '2025-03-04 12:20:00', FALSE),
+(4, 1, 3, 'Try my Pop Hits!', '2025-03-04 12:25:00', TRUE),
+(5, 4, 2, 'Admin, can you add more jazz?', '2025-03-04 12:30:00', FALSE),
+(6, 2, 4, 'Sure, working on it.', '2025-03-04 12:35:00', TRUE),
+(7, 5, 1, 'Love your favorites album!', '2025-03-04 12:40:00', FALSE),
+(8, 1, 5, 'Thanks, glad you like it!', '2025-03-04 12:45:00', TRUE),
+(9, 3, 2, 'Can we chat about music?', '2025-03-04 12:50:00', FALSE),
+(10, 2, 3, 'Of course, anytime!', '2025-03-04 12:55:00', TRUE),
+(11, 4, 5, 'Road trip vibes are great!', '2025-03-04 13:00:00', FALSE),
+(12, 5, 4, 'Thanks, I worked hard on it.', '2025-03-04 13:05:00', TRUE),
+(13, 1, 4, 'Any study tunes to share?', '2025-03-04 13:10:00', FALSE),
+(14, 4, 1, 'Check my Study Tunes album.', '2025-03-04 13:15:00', TRUE),
+(15, 2, 5, 'Top Hits updated!', '2025-03-04 13:20:00', FALSE),
+(16, 5, 2, 'Awesome, will check it out.', '2025-03-04 13:25:00', TRUE),
+(17, 3, 4, 'How’s your day?', '2025-03-04 13:30:00', FALSE),
+(18, 4, 3, 'Good, thanks for asking!', '2025-03-04 13:35:00', TRUE),
+(19, 1, 2, 'New song added!', '2025-03-05 09:00:00', FALSE),
+(20, 2, 1, 'Nice, I’ll listen.', '2025-03-05 09:05:00', TRUE),
+(21, 5, 3, 'Party playlist is fire!', '2025-03-05 09:10:00', FALSE),
+(22, 3, 5, 'Glad you think so!', '2025-03-05 09:15:00', TRUE),
+(23, 4, 2, 'More tracks please!', '2025-03-05 09:20:00', FALSE),
+(24, 2, 4, 'On it!', '2025-03-05 09:25:00', TRUE),
+(25, 1, 3, 'What’s your favorite song?', '2025-03-05 09:30:00', FALSE),
+(26, 3, 1, 'Love "Willow"!', '2025-03-05 09:35:00', TRUE),
+(27, 5, 4, 'Workout playlist rocks!', '2025-03-05 09:40:00', FALSE),
+(28, 4, 5, 'Thanks, glad you enjoyed!', '2025-03-05 09:45:00', TRUE),
+(29, 2, 3, 'New jazz mix up!', '2025-03-05 09:50:00', FALSE),
+(30, 3, 2, 'Can’t wait to hear it!', '2025-03-05 09:55:00', TRUE);
+
+INSERT INTO shared_listening_invitations (id, sender_id, receiver_id, track_id, start_time, current_position, created_at, status) VALUES
+(1, 1, 2, 1, '2025-03-04 12:00:00', '00:01:05', '2025-03-04 12:01:05', 'pending'),
+(2, 2, 3, 3, '2025-03-04 12:10:00', '00:02:30', '2025-03-04 12:12:30', 'accepted'),
+(3, 3, 1, 6, '2025-03-04 12:20:00', '00:00:45', '2025-03-04 12:20:45', 'rejected'),
+(4, 4, 5, 8, '2025-03-04 12:30:00', '00:01:20', '2025-03-04 12:31:20', 'pending'),
+(5, 5, 2, 9, '2025-03-04 12:40:00', '00:02:10', '2025-03-04 12:42:10', 'accepted'),
+(6, 1, 3, 19, '2025-03-04 12:50:00', '00:01:30', '2025-03-04 12:51:30', 'pending'),
+(7, 2, 4, 13, '2025-03-04 13:00:00', '00:03:00', '2025-03-04 13:03:00', 'rejected'),
+(8, 3, 5, 21, '2025-03-04 13:10:00', '00:00:55', '2025-03-04 13:10:55', 'accepted'),
+(9, 4, 1, 25, '2025-03-04 13:20:00', '00:02:45', '2025-03-04 13:22:45', 'pending'),
+(10, 5, 3, 32, '2025-03-04 13:30:00', '00:04:00', '2025-03-04 13:34:00', 'accepted'),
+(11, 1, 2, 4, '2025-03-05 09:00:00', '00:01:15', '2025-03-05 09:01:15', 'pending'),
+(12, 2, 5, 10, '2025-03-05 09:10:00', '00:03:20', '2025-03-05 09:13:20', 'rejected'),
+(13, 3, 4, 15, '2025-03-05 09:20:00', '00:02:00', '2025-03-05 09:22:00', 'accepted'),
+(14, 4, 2, 17, '2025-03-05 09:30:00', '00:01:50', '2025-03-05 09:31:50', 'pending'),
+(15, 5, 1, 20, '2025-03-05 09:40:00', '00:02:15', '2025-03-05 09:42:15', 'accepted'),
+(16, 1, 3, 29, '2025-03-05 09:50:00', '00:01:40', '2025-03-05 09:51:40', 'pending'),
+(17, 2, 4, 34, '2025-03-05 10:00:00', '00:03:10', '2025-03-05 10:03:10', 'rejected'),
+(18, 3, 5, 7, '2025-03-05 10:10:00', '00:02:25', '2025-03-05 10:12:25', 'accepted'),
+(19, 4, 1, 11, '2025-03-05 10:20:00', '00:04:30', '2025-03-05 10:24:30', 'pending'),
+(20, 5, 2, 36, '2025-03-05 10:30:00', '00:01:55', '2025-03-05 10:31:55', 'accepted');

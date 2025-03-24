@@ -1,0 +1,91 @@
+/* src/App.css */
+.app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #121212;
+  }
+  
+  .auth-container {
+    text-align: center;
+    color: #fff;
+  }
+  
+  .auth-container h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #1db954; /* Màu xanh của Spotify */
+  }
+  
+  .auth-form {
+    background-color: #181818;
+    padding: 40px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .auth-form h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #535353;
+    border-radius: 4px;
+    background-color: #121212;
+    color: #fff;
+    font-size: 16px;
+  }
+  
+  .form-group input::placeholder {
+    color: #b3b3b3;
+  }
+  
+  .auth-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #1db954;
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .auth-button:hover {
+    background-color: #1ed760;
+  }
+  
+  .success {
+    color: #1db954;
+    margin-bottom: 20px;
+  }
+  
+  .error {
+    color: #ff4d4d;
+    margin-bottom: 20px;
+  }
+  
+  .auth-form p {
+    margin-top: 20px;
+    color: #b3b3b3;
+  }
+  
+  .auth-form a {
+    color: #1db954;
+    text-decoration: none;
+  }
+  
+  .auth-form a:hover {
+    text-decoration: underline;
+  }

@@ -15,7 +15,7 @@ class User(AbstractUser):
     date_joined = models.DateTimeField()  # Sửa thành DateTimeField
 
     class Meta:
-        db_table = 'auth_user'
+        db_table = 'users'
 
 
 class Profile(models.Model):

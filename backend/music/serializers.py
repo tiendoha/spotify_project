@@ -4,7 +4,7 @@ from .models import User, Profile, Artist, Album, Track, Playlist, PlaylistTrack
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        field = ['id', 'username', 'email', 'date_joined']
+        fields = ['id', 'username', 'email', 'date_joined']
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
