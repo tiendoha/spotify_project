@@ -86,11 +86,10 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                 {messages.map((message) => (
                   <Link
                     key={message.id}
-                    to={`/inbox/${
-                      message.sender === user_id
+                    to={`/inbox/${message.sender === user_id
                         ? message.receiver
                         : message.sender
-                    }/`}
+                      }/`}
                     className="list-group-item list-group-item-action border-0"
                   >
                     <small>
