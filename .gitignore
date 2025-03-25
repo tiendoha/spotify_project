@@ -1,0 +1,45 @@
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Python/Django
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.log
+db.sqlite3  # Nếu bạn dùng SQLite, tránh commit database
+*.sqlite3
+migrations/  # Tránh commit migrations nếu không cần thiết
+
+# Node.js/React
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/  # Thư mục build của React
+
+# IDE/Editor
+.idea/  # PyCharm
+.vscode/  # Visual Studio Code
+*.sublime-workspace
+
+# OS-specific
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Miscellaneous
+*.bak
+*.swp
+*.tmp
