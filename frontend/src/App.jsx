@@ -15,7 +15,7 @@ const App = () => {
       </div>
       <PrivateRoute path="/messages" component={Messages} exact/>
       <Player />
-      <audio ref={audioRef} src={track.file} preload='auto'></audio>
+      <audio ref={audioRef} preload='auto'></audio>
     </div>
   )
 }
