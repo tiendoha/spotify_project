@@ -14,9 +14,25 @@ sudo apt update
 sudo apt install postgresql postgresql-contrib
 sudo service postgresql start
 
-# Chạy file schema
-sudo -u postgres psql -f music_app_schema.sql
-# Nếu chạy không được có thể là do đường dẫn file bị sai, có thể dùng `ls` để kiểm tra có file ở vị trí đó không nhé
+sudo -u postgres psql
+
+SELECT pg_stat_activity.pid, pg_stat_activity.usename, pg_stat_activity.query 
+FROM pg_stat_activity 
+WHERE pg_stat_activity.datname = 'music_app' AND state = 'active';
+
+DROP DATABASE music_app;
+
+CREATE DATABASE music_app;
+\q
+
+cd ../spotify_project/backend
+
+python manage.py makemigrations
+python manage.py migrate
+
+cd ../spotify_project
+
+sudo -u postgres psql -d music_app -f music_app_schema.sql
 
 sudo -u postgres psql -d music_app
 SELECT COUNT(*) FROM users;    -- 26

@@ -30,18 +30,11 @@ class Profile(models.Model):
 
 
 class Artist(models.Model):
-    GENRE_CHOICES = [
-        ('pop', 'Pop'),
-        ('rock', 'Rock'),
-        ('jazz', 'Jazz'),
-    ]
     name = models.CharField(max_length=255)
-    genre = models.CharField(max_length=50, choices=GENRE_CHOICES)
-    image = models.CharField(max_length=255, null=True, blank=True)
+    image = models.CharField(max_length=255, null=True, blank=True)  # Giữ lại image trong Artist
 
     class Meta:
         db_table = 'artists'
-
 
 class Album(models.Model):
     name = models.CharField(max_length=255)
@@ -54,16 +47,23 @@ class Album(models.Model):
 
 
 class Track(models.Model):
+    GENRE_CHOICES = [
+        ('pop', 'Pop'),
+        ('rock', 'Rock'),
+        ('jazz', 'Jazz'),
+    ]
     name = models.CharField(max_length=255)
     duration = models.DurationField()
     file = models.CharField(max_length=255)
+    image = models.CharField(max_length=255, null=True, blank=True)  # Thêm image vào Track
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
+    genre = models.CharField(max_length=50, choices=GENRE_CHOICES, null=True, blank=True)  # Thêm genre vào Track
 
     class Meta:
         db_table = 'tracks'
 
-
+        
 class Playlist(models.Model):
     name = models.CharField(max_length=255)
     image = models.CharField(max_length=255, null=True, blank=True)

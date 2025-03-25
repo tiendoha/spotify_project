@@ -1,131 +1,131 @@
--- Xóa database cũ (nếu cần) và tạo mới --
-DROP DATABASE IF EXISTS music_app;
-CREATE DATABASE music_app;
+-- -- Xóa database cũ (nếu cần) và tạo mới --
+-- DROP DATABASE IF EXISTS music_app;
+-- CREATE DATABASE music_app;
 
--- Kết nối tới database --
-\c music_app
+-- -- Kết nối tới database --
+-- \c music_app
 
--- Tạo các bảng --
+-- -- Tạo các bảng --
 
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(150) NOT NULL UNIQUE,
-    email VARCHAR(254) NOT NULL,
-    password VARCHAR(128) NOT NULL,
-    date_joined TIMESTAMP NOT NULL,
-    role INTEGER NOT NULL DEFAULT 1 CHECK (role IN (1, 2))
-);
+-- CREATE TABLE users (
+--     id SERIAL PRIMARY KEY,
+--     username VARCHAR(150) NOT NULL UNIQUE,
+--     email VARCHAR(254) NOT NULL,
+--     password VARCHAR(128) NOT NULL,
+--     date_joined TIMESTAMP NOT NULL,
+--     role INTEGER NOT NULL DEFAULT 1 CHECK (role IN (1, 2))
+-- );
 
-CREATE TABLE profiles (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    date_of_birth DATE,
-    profile_image VARCHAR(255)
-);
+-- CREATE TABLE profiles (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+--     date_of_birth DATE,
+--     profile_image VARCHAR(255)
+-- );
 
-CREATE TABLE artists (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    genre VARCHAR(50) NOT NULL CHECK (genre IN ('pop', 'rock', 'jazz')),
-    image VARCHAR(255)
-);
+-- CREATE TABLE artists (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     genre VARCHAR(50) NOT NULL CHECK (genre IN ('pop', 'rock', 'jazz')),
+--     image VARCHAR(255)
+-- );
 
-CREATE TABLE albums (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    release_date DATE NOT NULL,
-    image VARCHAR(255),
-    artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE
-);
+-- CREATE TABLE albums (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     release_date DATE NOT NULL,
+--     image VARCHAR(255),
+--     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE
+-- );
 
-CREATE TABLE tracks (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    duration INTERVAL NOT NULL,
-    file VARCHAR(255) NOT NULL,
-    artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
-    album_id INTEGER REFERENCES albums(id) ON DELETE SET NULL
-);
+-- CREATE TABLE tracks (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     duration INTERVAL NOT NULL,
+--     file VARCHAR(255) NOT NULL,
+--     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
+--     album_id INTEGER REFERENCES albums(id) ON DELETE SET NULL
+-- );
 
-CREATE TABLE playlists (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    image VARCHAR(255),
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
-);
+-- CREATE TABLE playlists (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     image VARCHAR(255),
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+-- );
 
-CREATE TABLE playlist_tracks (
-    id SERIAL PRIMARY KEY,
-    playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
-    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    track_order INTEGER NOT NULL CHECK (track_order >= 0),
-    CONSTRAINT unique_playlist_order UNIQUE (playlist_id, track_order)
-);
+-- CREATE TABLE playlist_tracks (
+--     id SERIAL PRIMARY KEY,
+--     playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     track_order INTEGER NOT NULL CHECK (track_order >= 0),
+--     CONSTRAINT unique_playlist_order UNIQUE (playlist_id, track_order)
+-- );
 
-CREATE TABLE followers (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
-    CONSTRAINT unique_follow UNIQUE (user_id, artist_id)
-);
+-- CREATE TABLE followers (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
+--     CONSTRAINT unique_follow UNIQUE (user_id, artist_id)
+-- );
 
-CREATE TABLE likes (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    liked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_like UNIQUE (user_id, track_id)
-);
+-- CREATE TABLE likes (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     liked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     CONSTRAINT unique_like UNIQUE (user_id, track_id)
+-- );
 
--- Chèn dữ liệu vào các bảng --
-CREATE TABLE messages (
-    id SERIAL PRIMARY KEY,
-    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_read BOOLEAN NOT NULL DEFAULT FALSE
-);
+-- -- Chèn dữ liệu vào các bảng --
+-- CREATE TABLE messages (
+--     id SERIAL PRIMARY KEY,
+--     sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     content TEXT NOT NULL,
+--     sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     is_read BOOLEAN NOT NULL DEFAULT FALSE
+-- );
 
--- Tạo chỉ mục để tăng hiệu suất truy vấn
-CREATE INDEX messages_sender_receiver_idx ON messages (sender_id, receiver_id);
+-- -- Tạo chỉ mục để tăng hiệu suất truy vấn
+-- CREATE INDEX messages_sender_receiver_idx ON messages (sender_id, receiver_id);
 
-CREATE TABLE shared_listening_invitations (
-    id SERIAL PRIMARY KEY,
-    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    start_time TIMESTAMP NOT NULL, -- Thời điểm bắt đầu phát nhạc của sender
-    current_position INTERVAL NOT NULL, -- Vị trí hiện tại của bài hát (tính bằng giây)
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
-    CONSTRAINT unique_invitation UNIQUE (sender_id, receiver_id, track_id)
-);
+-- CREATE TABLE shared_listening_invitations (
+--     id SERIAL PRIMARY KEY,
+--     sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     start_time TIMESTAMP NOT NULL, -- Thời điểm bắt đầu phát nhạc của sender
+--     current_position INTERVAL NOT NULL, -- Vị trí hiện tại của bài hát (tính bằng giây)
+--     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
+--     CONSTRAINT unique_invitation UNIQUE (sender_id, receiver_id, track_id)
+-- );
 
-CREATE INDEX shared_listening_idx ON shared_listening_invitations (sender_id, receiver_id);
+-- CREATE INDEX shared_listening_idx ON shared_listening_invitations (sender_id, receiver_id);
 
-CREATE TABLE music_videos (
-    id SERIAL PRIMARY KEY,
-    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    video_file VARCHAR(255) NOT NULL,
-    duration INTERVAL,
-    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+-- CREATE TABLE music_videos (
+--     id SERIAL PRIMARY KEY,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     video_file VARCHAR(255) NOT NULL,
+--     duration INTERVAL,
+--     uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- );
 
-CREATE TABLE user_albums (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    image VARCHAR(255),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-CREATE TABLE user_album_tracks (
-    id SERIAL PRIMARY KEY,
-    user_album_id INTEGER NOT NULL REFERENCES user_albums(id) ON DELETE CASCADE,
-    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    track_order INTEGER NOT NULL CHECK (track_order >= 0),
-    CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
-);
+-- CREATE TABLE user_albums (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     image VARCHAR(255),
+--     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- );
+-- CREATE TABLE user_album_tracks (
+--     id SERIAL PRIMARY KEY,
+--     user_album_id INTEGER NOT NULL REFERENCES user_albums(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     track_order INTEGER NOT NULL CHECK (track_order >= 0),
+--     CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
+-- );
 
 -- Users
 INSERT INTO users (id, username, email, password, date_joined) VALUES
@@ -186,16 +186,15 @@ INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (26, 26, '1994-08-15', '/profiles/peterq.png');
 
 -- Artists
-INSERT INTO artists (id, name, genre, image) VALUES
-(1, 'Taylor Swift', 'pop', '/artists/taylor.png'),
-(2, 'Kendrick Lamar', 'pop', '/artists/kendrick.png'), 
-(3, 'Billie Eilish', 'jazz', '/artists/billie.png'),
-(4, 'The Beatles', 'rock', '/artists/beatles.png'),
-(5, 'Miles Davis', 'jazz', '/artists/miles.png'),
-(6, 'Adele', 'pop', '/artists/adele.png'),
-(7, 'Nirvana', 'rock', '/artists/nirvana.png'),
-(8, 'Ella Fitzgerald', 'jazz', '/artists/ella.png');
-
+INSERT INTO artists (id, name, image) VALUES
+(1, 'Taylor Swift', '/artists/taylor.png'),
+(2, 'Kendrick Lamar', '/artists/kendrick.png'), 
+(3, 'Billie Eilish', '/artists/billie.png'),
+(4, 'The Beatles', '/artists/beatles.png'),
+(5, 'Miles Davis', '/artists/miles.png'),
+(6, 'Adele', '/artists/adele.png'),
+(7, 'Nirvana', '/artists/nirvana.png'),
+(8, 'Ella Fitzgerald', '/artists/ella.png');
 -- Albums
 INSERT INTO albums (id, name, release_date, image, artist_id) VALUES
 (1, 'I Can Do It With A Broken Heart', '2020-12-11', '/albums/broken-heart.jpeg', 1),
@@ -209,45 +208,43 @@ INSERT INTO albums (id, name, release_date, image, artist_id) VALUES
 (9, 'Reputation', '2017-11-10', '/albums/reputation.png', 1),
 (10, 'Damn', '2017-04-14', '/albums/damn.png', 2);
 
--- Tracks
-INSERT INTO tracks (id, name, duration, file, artist_id, album_id) VALUES
-(1, 'Willow', '00:03:34', '/tracks/willow.mp3', 1, 1),
-(2, 'Champagne Problems', '00:04:04', '/tracks/champagne.mp3', 1, 1),
-(3, 'Smells Like Teen Spirit', '00:05:01', '/tracks/teen_spirit.mp3', 2, 2),
-(4, 'Come As You Are', '00:03:38', '/tracks/come_as_you_are.mp3', 2, 2),
-(5, 'So What', '00:09:22', '/tracks/so_what.mp3', 3, 3),
-(6, 'Shake It Off', '00:03:39', '/tracks/shake_it_off.mp3', 1, NULL),
-(7, 'Come Together', '00:04:19', '/tracks/come_together.mp3', 4, 4),
-(8, 'Something', '00:03:02', '/tracks/something.mp3', 4, 4),
-(9, 'Here Comes the Sun', '00:03:06', '/tracks/here_comes_the_sun.mp3', 4, 4),
-(10, 'Blue in Green', '00:05:37', '/tracks/blue_in_green.mp3', 5, 5),
-(11, 'Freddie Freeloader', '00:09:46', '/tracks/freddie_freeloader.mp3', 5, 5),
-(12, 'Hello', '00:04:55', '/tracks/hello.mp3', 6, 6),
-(13, 'Rolling in the Deep', '00:03:48', '/tracks/rolling_in_the_deep.mp3', 6, 6),
-(14, 'Someone Like You', '00:04:45', '/tracks/someone_like_you.mp3', 6, 6),
-(15, 'Breed', '00:03:03', '/tracks/breed.mp3', 7, 7),
-(16, 'Lithium', '00:04:17', '/tracks/lithium.mp3', 7, 7),
-(17, 'Summertime', '00:04:58', '/tracks/summertime.mp3', 8, 8),
-(18, 'Cheek to Cheek', '00:05:52', '/tracks/cheek_to_cheek.mp3', 8, 8),
-(19, 'Blank Space', '00:03:51', '/tracks/blank_space.mp3', 1, 9),
-(20, 'Bad Blood', '00:03:31', '/tracks/bad_blood.mp3', 1, 9),
-(21, 'HUMBLE.', '00:02:57', '/tracks/humble.mp3', 2, 10),
-(22, 'DNA.', '00:03:05', '/tracks/dna.mp3', 2, 10),
-(23, 'Yesterday', '00:02:05', '/tracks/yesterday.mp3', 4, NULL),
-(24, 'Let It Be', '00:04:03', '/tracks/let_it_be.mp3', 4, NULL),
-(25, 'All of Me', '00:04:29', '/tracks/all_of_me.mp3', 5, NULL),
-(26, 'Set Fire to the Rain', '00:04:02', '/tracks/set_fire_to_the_rain.mp3', 6, NULL),
-(27, 'Heart-Shaped Box', '00:04:41', '/tracks/heart_shaped_box.mp3', 7, NULL),
-(28, 'My Funny Valentine', '00:05:00', '/tracks/my_funny_valentine.mp3', 8, NULL),
-(29, 'Love Story', '00:03:55', '/tracks/love_story.mp3', 1, NULL),
-(30, 'Loyalty', '00:03:47', '/tracks/loyalty.mp3', 2, NULL),
-(31, 'Bad Guy', '00:03:14', '/tracks/bad_guy.mp3', 3, NULL),
-(32, 'Hey Jude', '00:07:11', '/tracks/hey_jude.mp3', 4, NULL),
-(33, 'So What (Live)', '00:08:45', '/tracks/so_what_live.mp3', 5, NULL),
-(34, 'Skyfall', '00:04:46', '/tracks/skyfall.mp3', 6, NULL),
-(35, 'Rape Me', '00:02:50', '/tracks/rape_me.mp3', 7, NULL),
-(36, 'Misty', '00:03:00', '/tracks/misty.mp3', 8, NULL);
-
+INSERT INTO tracks (id, name, duration, file, image, artist_id, album_id, genre) VALUES
+(1, 'Willow', '00:03:34', '/tracks/willow.mp3', '/tracks/images/willow.png', 1, 1, 'pop'),
+(2, 'Champagne Problems', '00:04:04', '/tracks/champagne.mp3', '/tracks/images/champagne.png', 1, 1, 'pop'),
+(3, 'Smells Like Teen Spirit', '00:05:01', '/tracks/teen_spirit.mp3', '/tracks/images/teen_spirit.png', 7, 2, 'rock'),
+(4, 'Come As You Are', '00:03:38', '/tracks/come_as_you_are.mp3', '/tracks/images/come_as_you_are.png', 7, 2, 'rock'),
+(5, 'So What', '00:09:22', '/tracks/so_what.mp3', '/tracks/images/so_what.png', 5, 3, 'jazz'),
+(6, 'Shake It Off', '00:03:39', '/tracks/shake_it_off.mp3', '/tracks/images/shake_it_off.png', 1, NULL, 'pop'),
+(7, 'Come Together', '00:04:19', '/tracks/come_together.mp3', '/tracks/images/come_together.png', 4, 4, 'rock'),
+(8, 'Something', '00:03:02', '/tracks/something.mp3', '/tracks/images/something.png', 4, 4, 'rock'),
+(9, 'Here Comes the Sun', '00:03:06', '/tracks/here_comes_the_sun.mp3', '/tracks/images/here_comes_the_sun.png', 4, 4, 'rock'),
+(10, 'Blue in Green', '00:05:37', '/tracks/blue_in_green.mp3', '/tracks/images/blue_in_green.png', 5, 5, 'jazz'),
+(11, 'Freddie Freeloader', '00:09:46', '/tracks/freddie_freeloader.mp3', '/tracks/images/freddie_freeloader.png', 5, 5, 'jazz'),
+(12, 'Hello', '00:04:55', '/tracks/hello.mp3', '/tracks/images/hello.png', 6, 6, 'pop'),
+(13, 'Rolling in the Deep', '00:03:48', '/tracks/rolling_in_the_deep.mp3', '/tracks/images/rolling_in_the_deep.png', 6, 6, 'pop'),
+(14, 'Someone Like You', '00:04:45', '/tracks/someone_like_you.mp3', '/tracks/images/someone_like_you.png', 6, 6, 'pop'),
+(15, 'Breed', '00:03:03', '/tracks/breed.mp3', '/tracks/images/breed.png', 7, 7, 'rock'),
+(16, 'Lithium', '00:04:17', '/tracks/lithium.mp3', '/tracks/images/lithium.png', 7, 7, 'rock'),
+(17, 'Summertime', '00:04:58', '/tracks/summertime.mp3', '/tracks/images/summertime.png', 8, 8, 'jazz'),
+(18, 'Cheek to Cheek', '00:05:52', '/tracks/cheek_to_cheek.mp3', '/tracks/images/cheek_to_cheek.png', 8, 8, 'jazz'),
+(19, 'Blank Space', '00:03:51', '/tracks/blank_space.mp3', '/tracks/images/blank_space.png', 1, 9, 'pop'),
+(20, 'Bad Blood', '00:03:31', '/tracks/bad_blood.mp3', '/tracks/images/bad_blood.png', 1, 9, 'pop'),
+(21, 'HUMBLE.', '00:02:57', '/tracks/humble.mp3', '/tracks/images/humble.png', 2, 10, 'pop'),
+(22, 'DNA.', '00:03:05', '/tracks/dna.mp3', '/tracks/images/dna.png', 2, 10, 'pop'),
+(23, 'Yesterday', '00:02:05', '/tracks/yesterday.mp3', '/tracks/images/yesterday.png', 4, NULL, 'rock'),
+(24, 'Let It Be', '00:04:03', '/tracks/let_it_be.mp3', '/tracks/images/let_it_be.png', 4, NULL, 'rock'),
+(25, 'All of Me', '00:04:29', '/tracks/all_of_me.mp3', '/tracks/images/all_of_me.png', 5, NULL, 'jazz'),
+(26, 'Set Fire to the Rain', '00:04:02', '/tracks/set_fire_to_the_rain.mp3', '/tracks/images/set_fire_to_the_rain.png', 6, NULL, 'pop'),
+(27, 'Heart-Shaped Box', '00:04:41', '/tracks/heart_shaped_box.mp3', '/tracks/images/heart_shaped_box.png', 7, NULL, 'rock'),
+(28, 'My Funny Valentine', '00:05:00', '/tracks/my_funny_valentine.mp3', '/tracks/images/my_funny_valentine.png', 8, NULL, 'jazz'),
+(29, 'Love Story', '00:03:55', '/tracks/love_story.mp3', '/tracks/images/love_story.png', 1, NULL, 'pop'),
+(30, 'Loyalty', '00:03:47', '/tracks/loyalty.mp3', '/tracks/images/loyalty.png', 2, NULL, 'pop'),
+(31, 'Bad Guy', '00:03:14', '/tracks/bad_guy.mp3', '/tracks/images/bad_guy.png', 3, NULL, 'pop'),
+(32, 'Hey Jude', '00:07:11', '/tracks/hey_jude.mp3', '/tracks/images/hey_jude.png', 4, NULL, 'rock'),
+(33, 'So What (Live)', '00:08:45', '/tracks/so_what_live.mp3', '/tracks/images/so_what_live.png', 5, NULL, 'jazz'),
+(34, 'Skyfall', '00:04:46', '/tracks/skyfall.mp3', '/tracks/images/skyfall.png', 6, NULL, 'pop'),
+(35, 'Rape Me', '00:02:50', '/tracks/rape_me.mp3', '/tracks/images/rape_me.png', 7, NULL, 'rock'),
+(36, 'Misty', '00:03:00', '/tracks/misty.mp3', '/tracks/images/misty.png', 8, NULL, 'jazz');
 -- Playlists
 INSERT INTO playlists (id, name, image, user_id) VALUES
 (1, 'My Pop Hits', '/playlists/pop_hits.jpg', 1),

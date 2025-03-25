@@ -23,20 +23,17 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
-        fields = ['id', 'name', 'genre', 'image']
+        fields = ['id', 'name', 'image']  # Xóa genre
 
-
-class AlbumSerializer(serializers.ModelSerializer):  # Sửa tên thành số ít cho nhất quán
+class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album
         fields = ['id', 'name', 'release_date', 'image', 'artist']
 
-
 class TrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Track
-        fields = ['id', 'name', 'duration', 'file', 'artist', 'album']
-
+        fields = ['id', 'name', 'duration', 'file', 'image', 'artist', 'album', 'genre']  # Thêm image và genre
 
 class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
