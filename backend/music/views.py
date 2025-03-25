@@ -15,6 +15,17 @@ from .serializers import (
     UserAlbumSerializer, UserAlbumTrackSerializer
 )
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from music.models import User
+from django.contrib.auth.hashers import make_password, check_password
+from django.utils import timezone
+
+
 # Các ViewSet hiện có
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -158,3 +169,49 @@ class SearchUser(generics.ListAPIView):
 
         serializer = self.get_serializer(users, many=True)
         return Response(serializer.data)
+    
+
+# music/views.py
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')  # Lấy username thay vì email
+        password = request.data.get('password')
+        
+        try:
+            user = User.objects.get(username=username)  # Tìm user bằng username
+            if password == user.password:
+                token, _ = Token.objects.get_or_create(user=user)
+                role = 'admin' if user.role == 2 else 'user'
+                return Response({
+                    'token': token.key,
+                    'role': role,
+                    'user_id': user.id
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Mật khẩu không đúng'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'Tên người dùng không tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
+
+class RegisterView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        # Kiểm tra trùng username hoặc email
+        if User.objects.filter(username=username).exists():
+            return Response({'error': 'Tên người dùng đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'Email đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Tạo user mới
+        user = User(
+            username=username,
+            email=email,
+            password=make_password(password),  # Mã hóa mật khẩu
+            date_joined=timezone.now(),
+            role=1  # Mặc định là user
+        )
+        user.save()
+
+        return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)
