@@ -1,9 +1,13 @@
 # Virtual Environment
+backend/venv/
+backend/myenv/
+myenv/
 venv/
 env/
 .venv/
 
 # Python/Django
+backend/spotify_clone/__pycache__/
 __pycache__/
 *.py[cod]
 *.pyc
@@ -13,6 +17,7 @@ __pycache__/
 *.log
 db.sqlite3  # Nếu bạn dùng SQLite, tránh commit database
 *.sqlite3
+backend/music/migrations/  # Tránh commit migrations nếu không cần thiết
 migrations/  # Tránh commit migrations nếu không cần thiết
 
 # Node.js/React
@@ -43,3 +48,4 @@ Thumbs.db  # Windows
 *.bak
 *.swp
 *.tmp
+backend/spotify_clone/__pycache__/

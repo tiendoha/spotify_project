@@ -161,14 +161,7 @@ class MusicVideo(models.Model):
     def __str__(self):
         return f"Video for {self.track.name}"
 
-class Token(models.Model):
-    key = models.CharField(max_length=40, primary_key=True)
-    created = models.DateTimeField(auto_now_add=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='auth_token')
 
-    class Meta:
-        db_table = 'authtoken_token'
-        
 class UserAlbum(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id')
