@@ -48,7 +48,7 @@ const DisplayHome = () => {
             <div className="mb-4">
                 <h1 className='my-5 font-bold text-2xl'>Today's biggest hits</h1>
                 <div className="flex overflow-auto">
-                    {tracks.map((item) => (<SongItem key={item.id} name={item.name} artist_name={getArtistName(item.artist)} id={item.id} />))}
+                    {tracks.map((item) => (<SongItem key={item.id} name={item.name} artist_name={getArtistName(item.artist)} id={item.id} image={item.image} />))}
                 </div>
             </div>
         </>

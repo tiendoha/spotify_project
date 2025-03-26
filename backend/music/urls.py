@@ -7,6 +7,7 @@ from .views import (
     UserAlbumViewSet, UserAlbumTrackViewSet, MyInbox, GetMessages,
     SendMessages, ProfileDetail, SearchUser
 )
+from .views import LoginView, RegisterView
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -32,4 +33,6 @@ urlpatterns = [
     path('send-message/', SendMessages.as_view(), name='send-message'),
     path('profile/<int:pk>/', ProfileDetail.as_view(), name='profile-detail'),
     path('search/<str:username>/', SearchUser.as_view(), name='search-user'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('register/', RegisterView.as_view(), name='register'),
 ]

@@ -32,13 +32,14 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
+    'rest_framework.authtoken',  # Đảm bảo dòng này có mặt
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'music',
     'rest_framework',
-    'rest_framework_simplejwt',  # Thêm dòng này
+    'rest_framework_simplejwt',
     'corsheaders',
 ]
 REST_FRAMEWORK = {

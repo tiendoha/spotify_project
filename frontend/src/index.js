@@ -1,11 +1,12 @@
+// src/index.js
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { BrowserRouter as Router } from 'react-router-dom'; // Giữ Router ở đây
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Router>
+  <Router> {/* Router duy nhất ở đây */}
     <App />
   </Router>
 );
