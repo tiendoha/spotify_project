@@ -1,3 +1,135 @@
+<<<<<<< HEAD
+=======
+-- -- Xóa database cũ (nếu cần) và tạo mới --
+-- DROP DATABASE IF EXISTS music_app;
+-- CREATE DATABASE music_app;
+
+-- -- Kết nối tới database --
+-- \c music_app
+
+-- -- Tạo các bảng --
+
+-- CREATE TABLE users (
+--     id SERIAL PRIMARY KEY,
+--     username VARCHAR(150) NOT NULL UNIQUE,
+--     email VARCHAR(254) NOT NULL,
+--     password VARCHAR(128) NOT NULL,
+--     date_joined TIMESTAMP NOT NULL,
+--     role INTEGER NOT NULL DEFAULT 1 CHECK (role IN (1, 2))
+-- );
+
+-- CREATE TABLE profiles (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+--     date_of_birth DATE,
+--     profile_image VARCHAR(255)
+-- );
+
+-- CREATE TABLE artists (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     genre VARCHAR(50) NOT NULL CHECK (genre IN ('pop', 'rock', 'jazz')),
+--     image VARCHAR(255)
+-- );
+
+-- CREATE TABLE albums (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     release_date DATE NOT NULL,
+--     image VARCHAR(255),
+--     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE
+-- );
+
+-- CREATE TABLE tracks (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     duration INTERVAL NOT NULL,
+--     file VARCHAR(255) NOT NULL,
+--     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
+--     album_id INTEGER REFERENCES albums(id) ON DELETE SET NULL
+-- );
+
+-- CREATE TABLE playlists (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     image VARCHAR(255),
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+-- );
+
+-- CREATE TABLE playlist_tracks (
+--     id SERIAL PRIMARY KEY,
+--     playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     track_order INTEGER NOT NULL CHECK (track_order >= 0),
+--     CONSTRAINT unique_playlist_order UNIQUE (playlist_id, track_order)
+-- );
+
+-- CREATE TABLE followers (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     artist_id INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
+--     CONSTRAINT unique_follow UNIQUE (user_id, artist_id)
+-- );
+
+-- CREATE TABLE likes (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     liked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     CONSTRAINT unique_like UNIQUE (user_id, track_id)
+-- );
+
+-- -- Chèn dữ liệu vào các bảng --
+-- CREATE TABLE messages (
+--     id SERIAL PRIMARY KEY,
+--     sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     content TEXT NOT NULL,
+--     sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     is_read BOOLEAN NOT NULL DEFAULT FALSE
+-- );
+
+-- -- Tạo chỉ mục để tăng hiệu suất truy vấn
+-- CREATE INDEX messages_sender_receiver_idx ON messages (sender_id, receiver_id);
+
+-- CREATE TABLE shared_listening_invitations (
+--     id SERIAL PRIMARY KEY,
+--     sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     start_time TIMESTAMP NOT NULL, -- Thời điểm bắt đầu phát nhạc của sender
+--     current_position INTERVAL NOT NULL, -- Vị trí hiện tại của bài hát (tính bằng giây)
+--     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
+--     CONSTRAINT unique_invitation UNIQUE (sender_id, receiver_id, track_id)
+-- );
+
+-- CREATE INDEX shared_listening_idx ON shared_listening_invitations (sender_id, receiver_id);
+
+-- CREATE TABLE music_videos (
+--     id SERIAL PRIMARY KEY,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     video_file VARCHAR(255) NOT NULL,
+--     duration INTERVAL,
+--     uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- CREATE TABLE user_albums (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+--     image VARCHAR(255),
+--     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- );
+-- CREATE TABLE user_album_tracks (
+--     id SERIAL PRIMARY KEY,
+--     user_album_id INTEGER NOT NULL REFERENCES user_albums(id) ON DELETE CASCADE,
+--     track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+--     track_order INTEGER NOT NULL CHECK (track_order >= 0),
+--     CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
+-- );
+
+>>>>>>> 2f7e338e117e6821779ad3baca562c4caf17289a
 INSERT INTO users (id, username, email, password, date_joined, role) VALUES
 (1, 'user1', 'user1@example.com', 'hashed_password1', '2025-03-01 10:00:00', 1),
 (2, 'user2', 'user2@example.com', 'hashed_password2', '2025-03-02 15:30:00', 2), -- Admin
@@ -25,6 +157,10 @@ INSERT INTO users (id, username, email, password, date_joined, role) VALUES
 (24, 'loki_laufeyson', 'loki@example.com', 'hashed_password24', '2025-03-12 11:00:00', 1),
 (25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00', 1),
 (26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1);
+<<<<<<< HEAD
+=======
+-- Profiles
+>>>>>>> 2f7e338e117e6821779ad3baca562c4caf17289a
 -- Profiles
 INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (1, 1, '1995-05-15', '/profiles/user1.jpg'),
