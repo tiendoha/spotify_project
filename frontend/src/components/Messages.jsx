@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './style/Message.css';
 import useAxios from '../utils/useAxios';
 import jwtDecode from 'jwt-decode';
-import { Link, useNavigate } from 'react-router-dom'; // Thay useHistory bằng useNavigate (React Router v6)
+import { Link, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 
 function Messages() { // Đổi tên function thành Messages để phù hợp với file
