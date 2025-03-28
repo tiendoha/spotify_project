@@ -127,35 +127,34 @@
 --     CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
 -- );
 
--- Users
-INSERT INTO users (id, username, email, password, date_joined) VALUES
-(1, 'user1', 'user1@example.com', 'hashed_password1', '2025-03-01 10:00:00'),
-(2, 'user2', 'user2@example.com', 'hashed_password2', '2025-03-02 15:30:00'),
-(3, 'user3', 'user3@example.com', 'hashed_password3', '2025-03-03 09:15:00'),
-(4, 'user4', 'user4@example.com', 'hashed_password4', '2025-03-05 14:00:00'),
-(5, 'user5', 'user5@example.com', 'hashed_password5', '2025-03-06 09:30:00'),
-(6, 'user6', 'user6@example.com', 'hashed_password6', '2025-03-07 11:15:00'),
-(7, 'john_doe', 'john@example.com', 'hashed_password7', '2025-03-08 08:00:00'),
-(8, 'jane_smith', 'jane@example.com', 'hashed_password8', '2025-03-08 09:00:00'),
-(9, 'mike_jones', 'mike@example.com', 'hashed_password9', '2025-03-08 10:00:00'),
-(10, 'emma_watson', 'emma@example.com', 'hashed_password10', '2025-03-08 11:00:00'),
-(11, 'peter_parker', 'peter@example.com', 'hashed_password11', '2025-03-09 12:00:00'),
-(12, 'sarah_connor', 'sarah@example.com', 'hashed_password12', '2025-03-09 13:00:00'),
-(13, 'david_bowie', 'david@example.com', 'hashed_password13', '2025-03-09 14:00:00'),
-(14, 'linda_hamilton', 'linda@example.com', 'hashed_password14', '2025-03-09 15:00:00'),
-(15, 'chris_evans', 'chris@example.com', 'hashed_password15', '2025-03-10 16:00:00'),
-(16, 'natasha_romanoff', 'natasha@example.com', 'hashed_password16', '2025-03-10 17:00:00'),
-(17, 'tony_stark', 'tony@example.com', 'hashed_password17', '2025-03-10 18:00:00'),
-(18, 'bruce_wayne', 'bruce@example.com', 'hashed_password18', '2025-03-11 19:00:00'),
-(19, 'clark_kent', 'clark@example.com', 'hashed_password19', '2025-03-11 20:00:00'),
-(20, 'diana_prince', 'diana@example.com', 'hashed_password20', '2025-03-11 21:00:00'),
-(21, 'steve_rogers', 'steve@example.com', 'hashed_password21', '2025-03-12 08:00:00'),
-(22, 'wanda_maximoff', 'wanda@example.com', 'hashed_password22', '2025-03-12 09:00:00'),
-(23, 'thor_odinson', 'thor@example.com', 'hashed_password23', '2025-03-12 10:00:00'),
-(24, 'loki_laufeyson', 'loki@example.com', 'hashed_password24', '2025-03-12 11:00:00'),
-(25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00'),
-(26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00');
-
+INSERT INTO users (id, username, email, password, date_joined, role) VALUES
+(1, 'user1', 'user1@example.com', 'hashed_password1', '2025-03-01 10:00:00', 1),
+(2, 'user2', 'user2@example.com', 'hashed_password2', '2025-03-02 15:30:00', 2), -- Admin
+(3, 'user3', 'user3@example.com', 'hashed_password3', '2025-03-03 09:15:00', 1),
+(4, 'user4', 'user4@example.com', 'hashed_password4', '2025-03-05 14:00:00', 1),
+(5, 'user5', 'user5@example.com', 'hashed_password5', '2025-03-06 09:30:00', 1),
+(6, 'user6', 'user6@example.com', 'hashed_password6', '2025-03-07 11:15:00', 1),
+(7, 'john_doe', 'john@example.com', 'hashed_password7', '2025-03-08 08:00:00', 1),
+(8, 'jane_smith', 'jane@example.com', 'hashed_password8', '2025-03-08 09:00:00', 1),
+(9, 'mike_jones', 'mike@example.com', 'hashed_password9', '2025-03-08 10:00:00', 1),
+(10, 'emma_watson', 'emma@example.com', 'hashed_password10', '2025-03-08 11:00:00', 1),
+(11, 'peter_parker', 'peter@example.com', 'hashed_password11', '2025-03-09 12:00:00', 1),
+(12, 'sarah_connor', 'sarah@example.com', 'hashed_password12', '2025-03-09 13:00:00', 1),
+(13, 'david_bowie', 'david@example.com', 'hashed_password13', '2025-03-09 14:00:00', 1),
+(14, 'linda_hamilton', 'linda@example.com', 'hashed_password14', '2025-03-09 15:00:00', 1),
+(15, 'chris_evans', 'chris@example.com', 'hashed_password15', '2025-03-10 16:00:00', 1),
+(16, 'natasha_romanoff', 'natasha@example.com', 'hashed_password16', '2025-03-10 17:00:00', 1),
+(17, 'tony_stark', 'tony@example.com', 'hashed_password17', '2025-03-10 18:00:00', 1),
+(18, 'bruce_wayne', 'bruce@example.com', 'hashed_password18', '2025-03-11 19:00:00', 1),
+(19, 'clark_kent', 'clark@example.com', 'hashed_password19', '2025-03-11 20:00:00', 1),
+(20, 'diana_prince', 'diana@example.com', 'hashed_password20', '2025-03-11 21:00:00', 1),
+(21, 'steve_rogers', 'steve@example.com', 'hashed_password21', '2025-03-12 08:00:00', 1),
+(22, 'wanda_maximoff', 'wanda@example.com', 'hashed_password22', '2025-03-12 09:00:00', 1),
+(23, 'thor_odinson', 'thor@example.com', 'hashed_password23', '2025-03-12 10:00:00', 1),
+(24, 'loki_laufeyson', 'loki@example.com', 'hashed_password24', '2025-03-12 11:00:00', 1),
+(25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00', 1),
+(26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1);
+-- Profiles
 -- Profiles
 INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (1, 1, '1995-05-15', '/profiles/user1.jpg'),
