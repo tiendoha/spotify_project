@@ -1,91 +1,159 @@
-/* src/App.css */
 .app {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #121212;
-  }
-  
-  .auth-container {
-    text-align: center;
-    color: #fff;
-  }
-  
-  .auth-container h1 {
-    font-size: 48px;
-    margin-bottom: 20px;
-    color: #1db954; /* Màu xanh của Spotify */
-  }
-  
-  .auth-form {
-    background-color: #181818;
-    padding: 40px;
-    border-radius: 8px;
-    width: 400px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .auth-form h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #535353;
-    border-radius: 4px;
-    background-color: #121212;
-    color: #fff;
-    font-size: 16px;
-  }
-  
-  .form-group input::placeholder {
-    color: #b3b3b3;
-  }
-  
-  .auth-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #1db954;
-    border: none;
-    border-radius: 50px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .auth-button:hover {
-    background-color: #1ed760;
-  }
-  
-  .success {
-    color: #1db954;
-    margin-bottom: 20px;
-  }
-  
-  .error {
-    color: #ff4d4d;
-    margin-bottom: 20px;
-  }
-  
-  .auth-form p {
-    margin-top: 20px;
-    color: #b3b3b3;
-  }
-  
-  .auth-form a {
-    color: #1db954;
-    text-decoration: none;
-  }
-  
-  .auth-form a:hover {
-    text-decoration: underline;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #121212;
+  /* Màu nền tối, giữ nguyên */
+  font-family: 'Arial', sans-serif;
+  /* Thêm font mặc định để đồng nhất */
+}
+
+.auth-container {
+  text-align: center;
+  color: #fff;
+  /* Màu chữ trắng, giữ nguyên */
+}
+
+.auth-container h1 {
+  font-size: 48px;
+  margin-bottom: 24px;
+  /* Tăng nhẹ khoảng cách cho thoáng */
+  color: #1db954;
+  /* Màu xanh Spotify, giữ nguyên */
+  font-weight: 700;
+  /* Đậm hơn để nổi bật */
+}
+
+.auth-form {
+  background-color: #181818;
+  /* Màu nền form tối, giữ nguyên */
+  padding: 40px;
+  /* Giữ padding rộng rãi */
+  border-radius: 12px;
+  /* Bo góc mềm mại hơn */
+  width: 400px;
+  /* Độ rộng form, giữ nguyên */
+  box-shadow: 0 8px 24px RGBA(0, 0, 0, 0.3);
+  /* Bóng đổ đậm hơn, tăng chiều sâu */
+}
+
+.auth-form h2 {
+  font-size: 26px;
+  /* Tăng nhẹ kích thước chữ cho tiêu đề */
+  margin-bottom: 24px;
+  /* Tăng khoảng cách cho thoáng */
+  color: #fff;
+  /* Đảm bảo màu trắng rõ ràng */
+  font-weight: 600;
+  /* Đậm vừa phải */
+}
+
+.form-group {
+  margin-bottom: 24px;
+  /* Tăng nhẹ khoảng cách giữa các trường */
+  text-align: left;
+  /* Căn trái để nhãn và input trông gọn gàng */
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px;
+  /* Tăng padding để input thoải mái hơn */
+  border: 1px solid #535353;
+  /* Viền xám, giữ nguyên */
+  border-radius: 6px;
+  /* Bo góc nhẹ nhàng hơn */
+  background-color: #282828;
+  /* Màu nền input sáng hơn một chút so với form */
+  color: #fff;
+  /* Màu chữ trắng, giữ nguyên */
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  /* Thêm hiệu ứng khi focus */
+}
+
+.form-group input:focus {
+  border-color: #1db954;
+  /* Viền xanh khi focus */
+  outline: none;
+  /* Loại bỏ viền mặc định của trình duyệt */
+}
+
+.form-group input::placeholder {
+  color: #b3b3b3;
+  /* Màu placeholder, giữ nguyên */
+  opacity: 0.8;
+  /* Giảm độ đậm để nhẹ nhàng hơn */
+}
+
+.auth-button {
+  width: 100%;
+  padding: 14px;
+  /* Tăng padding cho nút lớn hơn */
+  background-color: #1db954;
+  /* Màu xanh Spotify, giữ nguyên */
+  border: none;
+  border-radius: 50px;
+  /* Giữ bo góc tròn */
+  color: #fff;
+  /* Màu chữ trắng, giữ nguyên */
+  font-size: 16px;
+  font-weight: 700;
+  /* Đậm hơn để nổi bật */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  /* Thêm hiệu ứng mượt mà */
+}
+
+.auth-button:hover {
+  background-color: #1ed760;
+  /* Màu xanh sáng hơn khi hover, giữ nguyên */
+  transform: translateY(-2px);
+  /* Nâng nhẹ nút lên khi hover */
+}
+
+.auth-button:active {
+  transform: translateY(0);
+  /* Trả lại vị trí khi nhấn */
+}
+
+.success {
+  color: #1db954;
+  /* Màu xanh thành công, giữ nguyên */
+  margin-bottom: 20px;
+  font-size: 14px;
+  /* Giảm kích thước cho thông báo */
+}
+
+.error {
+  color: #ff4d4d;
+  /* Màu đỏ lỗi, giữ nguyên */
+  margin-bottom: 20px;
+  font-size: 14px;
+  /* Giảm kích thước cho thông báo */
+}
+
+.auth-form p {
+  margin-top: 24px;
+  /* Tăng khoảng cách cho phần text phụ */
+  color: #b3b3b3;
+  /* Màu xám nhạt, giữ nguyên */
+  font-size: 14px;
+  /* Giảm kích thước cho gọn */
+}
+
+.auth-form a {
+  color: #1db954;
+  /* Màu xanh cho link, giữ nguyên */
+  text-decoration: none;
+  font-weight: 600;
+  /* Đậm nhẹ để nổi bật */
+}
+
+.auth-form a:hover {
+  color: #1ed760;
+  /* Sáng hơn khi hover */
+  text-decoration: underline;
+  /* Giữ gạch chân khi hover */
+}

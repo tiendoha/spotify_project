@@ -3,28 +3,28 @@ import { useNavigate, Link } from "react-router-dom";
 
 
 const Signup = () => {
-    const [email, setEmail] = useState('');
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [message, setMessage] = useState('');
-    const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
-    const handleSignup = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:8000/api/register/', {
-                email,
-                username,
-                password,
-            });
-            setMessage('Đăng nhập thành công! Vui lòng đăng nhập');
-            setTimeout(() => navigate('/'), 2000)
-        } catch (error) {
-            setMessage('Đăng ký thất bại. username hoặc email đã tồn tại!');
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:8000/api/register/', {
+        email,
+        username,
+        password,
+      });
+      setMessage('Đăng nhập thành công! Vui lòng đăng nhập');
+      setTimeout(() => navigate('/'), 2000)
+    } catch (error) {
+      setMessage('Đăng ký thất bại. username hoặc email đã tồn tại!');
 
-        };
     };
-    return (
+  };
+  return (
     <div className="auth-container">
       <h1>Spotify</h1>
       <form onSubmit={handleSignup} className="auth-form">
@@ -59,11 +59,11 @@ const Signup = () => {
         </div>
         <button type="submit" className="auth-button">Đăng ký</button>
         <p>
-          Đã có tài khoản? <Link to="/">Đăng nhập</Link>
+          Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
         </p>
       </form>
     </div>
-    );
+  );
 };
 
 export default Signup;
