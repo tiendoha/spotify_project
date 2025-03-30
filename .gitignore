@@ -49,3 +49,4 @@ Thumbs.db  # Windows
 *.swp
 *.tmp
 backend/spotify_clone/__pycache__/
+frontend/src/assets/

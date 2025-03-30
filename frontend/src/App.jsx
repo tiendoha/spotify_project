@@ -1,39 +1,27 @@
-import React, { Component, useContext } from 'react';
-<<<<<<< HEAD
-// import Sidebar from './components/sidebar';
-// import Player from './components/Player';
-// import Display from './components/Display';
-// import { PlayerContext } from './context/PlayerContext';
-import Messages from './components/Messages';
-=======
-import Sidebar from './components/sidebar';
+import React, { useContext } from 'react';
+import Sidebar from './components/Sidebar';
 import Player from './components/Player';
 import Display from './components/Display';
 import { PlayerContext } from './context/PlayerContext';
-<<<<<<< HEAD
->>>>>>> 5cee4f425a640417dd5acdf7e1a551e54bb80bf6
-const App = () => {
-
-  // const { audioRef, track } = useContext(PlayerContext)
-  return (
-=======
-import Login from './components/LogIn';
+import { AuthProvider } from './context/AuthContext'
+import Login from './components/Login';
 import SignUp from './components/SignUp';
+import Messages from './components/Messages';
+import MessageDetail from './components/MessageDetail'; // Import MessageDetail
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import "./App.css";
-const App = () => {
 
-  const { audioRef, track } = useContext(PlayerContext)
+const App = () => {
+  const { audioRef } = useContext(PlayerContext);
 
   const MainLayout = () => (
->>>>>>> 156575655a3f5532731849fad71247b3f01fe822
     <div className="h-screen bg-black">
       <div className="h-[90%] flex">
         <Sidebar />
         <Display />
       </div>
       <Player />
-      <audio ref={audioRef} preload='auto'></audio>
+      <audio ref={audioRef} preload="auto" />
     </div>
   );
 
@@ -48,13 +36,30 @@ const App = () => {
       <SignUp />
     </div>
   );
-  return (
-    <Routes>
-      <Route path="/login" element={<LoginLayout />} />
-      <Route path="/signup" element={<SignupLayout />} />
-      <Route path="/*" element={<MainLayout />} />
-    </Routes>
-  )
-}
 
-export default App
+  const MessagesLayout = () => (
+    <div className="app h-screen bg-black">
+      <Messages />
+    </div>
+  );
+
+  const MessageDetailLayout = () => (
+    <div className="app h-screen bg-black">
+      <MessageDetail />
+    </div>
+  );
+
+  return (
+    <AuthProvider>
+    <Routes>
+          <Route path="/login" element={<LoginLayout />} />
+          <Route path="/signup" element={<SignupLayout />} />
+          <Route path="/inbox" element={<MessagesLayout />} />
+          <Route path="/inbox/:id" element={<MessageDetailLayout />} />
+          <Route path="/*" element={<MainLayout />} />
+    </Routes>
+    </AuthProvider>
+  );
+};
+
+export default App;
