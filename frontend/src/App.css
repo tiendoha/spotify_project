@@ -4,156 +4,124 @@
   align-items: center;
   min-height: 100vh;
   background-color: #121212;
-  /* Màu nền tối, giữ nguyên */
   font-family: 'Arial', sans-serif;
-  /* Thêm font mặc định để đồng nhất */
 }
 
 .auth-container {
   text-align: center;
   color: #fff;
-  /* Màu chữ trắng, giữ nguyên */
 }
 
 .auth-container h1 {
-  font-size: 48px;
-  margin-bottom: 24px;
-  /* Tăng nhẹ khoảng cách cho thoáng */
+  font-size: 40px; /* Giảm từ 48px xuống 40px */
+  margin-bottom: 16px; /* Giảm từ 24px xuống 16px */
   color: #1db954;
-  /* Màu xanh Spotify, giữ nguyên */
   font-weight: 700;
-  /* Đậm hơn để nổi bật */
 }
 
 .auth-form {
   background-color: #181818;
-  /* Màu nền form tối, giữ nguyên */
-  padding: 40px;
-  /* Giữ padding rộng rãi */
+  padding: 24px; /* Giảm từ 40px xuống 24px */
   border-radius: 12px;
-  /* Bo góc mềm mại hơn */
-  width: 400px;
-  /* Độ rộng form, giữ nguyên */
+  width: 360px; /* Giảm từ 400px xuống 360px */
   box-shadow: 0 8px 24px RGBA(0, 0, 0, 0.3);
-  /* Bóng đổ đậm hơn, tăng chiều sâu */
 }
 
 .auth-form h2 {
-  font-size: 26px;
-  /* Tăng nhẹ kích thước chữ cho tiêu đề */
-  margin-bottom: 24px;
-  /* Tăng khoảng cách cho thoáng */
+  font-size: 22px; /* Giảm từ 26px xuống 22px */
+  margin-bottom: 16px; /* Giảm từ 24px xuống 16px */
   color: #fff;
-  /* Đảm bảo màu trắng rõ ràng */
   font-weight: 600;
-  /* Đậm vừa phải */
 }
 
 .form-group {
-  margin-bottom: 24px;
-  /* Tăng nhẹ khoảng cách giữa các trường */
+  margin-bottom: 16px; /* Giảm từ 24px xuống 16px */
   text-align: left;
-  /* Căn trái để nhãn và input trông gọn gàng */
 }
 
 .form-group input {
   width: 100%;
-  padding: 14px;
-  /* Tăng padding để input thoải mái hơn */
+  padding: 10px; /* Giảm từ 14px xuống 10px */
   border: 1px solid #535353;
-  /* Viền xám, giữ nguyên */
   border-radius: 6px;
-  /* Bo góc nhẹ nhàng hơn */
   background-color: #282828;
-  /* Màu nền input sáng hơn một chút so với form */
   color: #fff;
-  /* Màu chữ trắng, giữ nguyên */
-  font-size: 16px;
+  font-size: 14px; /* Giảm từ 16px xuống 14px */
   transition: border-color 0.3s ease;
-  /* Thêm hiệu ứng khi focus */
 }
 
 .form-group input:focus {
   border-color: #1db954;
-  /* Viền xanh khi focus */
   outline: none;
-  /* Loại bỏ viền mặc định của trình duyệt */
 }
 
 .form-group input::placeholder {
   color: #b3b3b3;
-  /* Màu placeholder, giữ nguyên */
   opacity: 0.8;
-  /* Giảm độ đậm để nhẹ nhàng hơn */
 }
 
 .auth-button {
   width: 100%;
-  padding: 14px;
-  /* Tăng padding cho nút lớn hơn */
+  padding: 10px; /* Giảm từ 14px xuống 10px */
   background-color: #1db954;
-  /* Màu xanh Spotify, giữ nguyên */
   border: none;
   border-radius: 50px;
-  /* Giữ bo góc tròn */
   color: #fff;
-  /* Màu chữ trắng, giữ nguyên */
-  font-size: 16px;
+  font-size: 14px; /* Giảm từ 16px xuống 14px */
   font-weight: 700;
-  /* Đậm hơn để nổi bật */
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  /* Thêm hiệu ứng mượt mà */
 }
 
 .auth-button:hover {
   background-color: #1ed760;
-  /* Màu xanh sáng hơn khi hover, giữ nguyên */
   transform: translateY(-2px);
-  /* Nâng nhẹ nút lên khi hover */
 }
 
 .auth-button:active {
   transform: translateY(0);
-  /* Trả lại vị trí khi nhấn */
 }
 
 .success {
   color: #1db954;
-  /* Màu xanh thành công, giữ nguyên */
-  margin-bottom: 20px;
-  font-size: 14px;
-  /* Giảm kích thước cho thông báo */
+  margin-bottom: 12px; /* Giảm từ 20px xuống 12px */
+  font-size: 12px; /* Giảm từ 14px xuống 12px */
 }
 
 .error {
   color: #ff4d4d;
-  /* Màu đỏ lỗi, giữ nguyên */
-  margin-bottom: 20px;
-  font-size: 14px;
-  /* Giảm kích thước cho thông báo */
+  margin-bottom: 12px; /* Giảm từ 20px xuống 12px */
+  font-size: 12px; /* Giảm từ 14px xuống 12px */
 }
 
 .auth-form p {
-  margin-top: 24px;
-  /* Tăng khoảng cách cho phần text phụ */
+  margin-top: 16px; /* Giảm từ 24px xuống 16px */
   color: #b3b3b3;
-  /* Màu xám nhạt, giữ nguyên */
-  font-size: 14px;
-  /* Giảm kích thước cho gọn */
+  font-size: 12px; /* Giảm từ 14px xuống 12px */
 }
 
 .auth-form a {
   color: #1db954;
-  /* Màu xanh cho link, giữ nguyên */
   text-decoration: none;
   font-weight: 600;
-  /* Đậm nhẹ để nổi bật */
 }
 
 .auth-form a:hover {
   color: #1ed760;
-  /* Sáng hơn khi hover */
   text-decoration: underline;
-  /* Giữ gạch chân khi hover */
+}
+.form-group {
+  position: relative; /* Để nút ẩn/hiện nằm trong input */
+}
+
+.form-group button {
+  background: none;
+  border: none;
+  color: #1db954;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.error div p {
+  margin: 5px 0; /* Cách đều các thông báo lỗi trong password */
 }

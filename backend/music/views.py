@@ -174,12 +174,16 @@ class SearchUser(generics.ListAPIView):
 # music/views.py
 class LoginView(APIView):
     def post(self, request):
-        username = request.data.get('username')  # Lấy username thay vì email
+        username = request.data.get('username')
         password = request.data.get('password')
-        
+
+        # Kiểm tra dữ liệu đầu vào
+        if not username or not password:
+            return Response({'error': 'Vui lòng cung cấp tên người dùng và mật khẩu'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            user = User.objects.get(username=username)  # Tìm user bằng username
-            if password == user.password:
+            user = User.objects.get(username=username)
+            if check_password(password, user.password):  # Kiểm tra mật khẩu đã mã hóa
                 token, _ = Token.objects.get_or_create(user=user)
                 role = 'admin' if user.role == 2 else 'user'
                 return Response({
@@ -198,6 +202,10 @@ class RegisterView(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
 
+        # Kiểm tra dữ liệu đầu vào
+        if not username or not email or not password:
+            return Response({'error': 'Vui lòng cung cấp đầy đủ tên người dùng, email và mật khẩu'}, status=status.HTTP_400_BAD_REQUEST)
+
         # Kiểm tra trùng username hoặc email
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Tên người dùng đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
@@ -208,10 +216,10 @@ class RegisterView(APIView):
         user = User(
             username=username,
             email=email,
-            password=make_password(password),  # Mã hóa mật khẩu
             date_joined=timezone.now(),
             role=1  # Mặc định là user
         )
+        user.set_password(password)  # Mã hóa mật khẩu
         user.save()
 
         return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)

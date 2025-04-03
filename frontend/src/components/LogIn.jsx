@@ -17,7 +17,8 @@ const Login = () => {
             });
 
             localStorage.setItem('token', response.data.token);
-
+            const token = localStorage.getItem('token');
+            console.log('Token hiện tại:', token);
             const userRole = response.data.role;
 
             setMessage('Dang nhap thanh cong');
@@ -29,7 +30,7 @@ const Login = () => {
             }
         } catch (error) {
             setMessage('Dang nhap that bai. Kiem tra tai khoan hoac mat khau.');
-
+            console.log(error.response.data); // In lỗi từ server
         }
     };
     
