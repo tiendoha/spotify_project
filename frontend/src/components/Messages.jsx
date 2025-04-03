@@ -2,21 +2,20 @@ import React, { useState, useEffect } from 'react';
 import './style/Message.css';
 import useAxios from '../utils/useAxios';
 import jwtDecode from 'jwt-decode';
-import { Link, useNavigate } from 'react-router-dom'; // Thay useHistory bằng useNavigate (React Router v6)
+import { Link, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 
-function Messages() { // Đổi tên function thành Messages để phù hợp với file
+function Messages() {
   const baseURL = 'http://127.0.0.1:8000/api';
   const [messages, setMessages] = useState([]);
-  const [newSearch, setNewSearch] = useState({ search: '' }); // Sửa tên biến cho rõ ràng
+  const [newSearch, setNewSearch] = useState({ search: '' });
   const axios = useAxios();
-  const navigate = useNavigate(); // Thay useHistory bằng useNavigate
+  const navigate = useNavigate();
 
   // Lấy và giải mã token
   const token = localStorage.getItem('authTokens');
   const decoded = jwtDecode(token);
   const user_id = decoded.user_id;
-  const username = decoded.username;
 
   // Lấy danh sách tin nhắn khi component mount
   useEffect(() => {
@@ -24,13 +23,13 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
       try {
         const res = await axios.get(`${baseURL}/inbox/${user_id}/`);
         setMessages(res.data);
-        console.log(res.data);
+        console.log('API Response:', res.data); // Log dữ liệu để kiểm tra cấu trúc
       } catch (error) {
         console.error('Error fetching messages:', error);
       }
     };
     fetchMessages();
-  }, [axios, user_id]); // Thêm dependencies vào useEffect
+  }, [axios, user_id]);
 
   // Xử lý thay đổi input tìm kiếm
   const handleSearchChange = (event) => {
@@ -71,7 +70,7 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                         className="form-control my-3"
                         placeholder="Search..."
                         onChange={handleSearchChange}
-                        name="search" // Đổi name thành "search" để khớp với state
+                        name="search"
                       />
                       <button
                         className="ml-2"
@@ -86,10 +85,11 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                 {messages.map((message) => (
                   <Link
                     key={message.id}
-                    to={`/inbox/${message.sender === user_id
+                    to={`/inbox/${
+                      message.sender === user_id
                         ? message.receiver
                         : message.sender
-                      }/`}
+                    }/`}
                     className="list-group-item list-group-item-action border-0"
                   >
                     <small>
@@ -101,11 +101,11 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                       {message.sender !== user_id && (
                         <img
                           src={
-                            message.sender_profile.profile_image ||
+                            message.sender_profile?.profile_image ||
                             'https://bootdey.com/img/Content/avatar/avatar3.png'
                           }
                           className="rounded-circle mr-1"
-                          alt={message.sender_profile.user}
+                          alt={message.sender_username || 'Unknown Sender'}
                           width={40}
                           height={40}
                         />
@@ -113,19 +113,19 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                       {message.sender === user_id && (
                         <img
                           src={
-                            message.receiver_profile.profile_image ||
+                            message.receiver_profile?.profile_image ||
                             'https://bootdey.com/img/Content/avatar/avatar1.png'
                           }
                           className="rounded-circle mr-1"
-                          alt={message.receiver_profile.user}
+                          alt={message.receiver_username || 'Unknown Receiver'}
                           width={40}
                           height={40}
                         />
                       )}
                       <div className="flex-grow-1 ml-3">
                         {message.sender === user_id
-                          ? message.receiver_profile.user // Hiển thị username của receiver
-                          : message.sender_profile.user}  // Hiển thị username của sender
+                          ? message.receiver_username || 'Unknown Receiver'
+                          : message.sender_username || 'Unknown Sender'}
                         <div className="small">
                           <small>{message.content}</small>
                         </div>
@@ -157,7 +157,6 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                 </div>
                 <div className="position-relative">
                   <div className="chat-messages p-4">
-                    {/* Placeholder - Có thể thêm logic để hiển thị tin nhắn chi tiết sau */}
                     <p>Select a conversation to start chatting.</p>
                   </div>
                 </div>
@@ -167,7 +166,7 @@ function Messages() { // Đổi tên function thành Messages để phù hợp v
                       type="text"
                       className="form-control"
                       placeholder="Type your message"
-                      disabled // Tạm thời disable vì chưa có logic gửi
+                      disabled
                     />
                     <button className="btn btn-primary" disabled>
                       Send
