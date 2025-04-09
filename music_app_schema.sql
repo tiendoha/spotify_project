@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+
 -- -- Xóa database cũ (nếu cần) và tạo mới --
 -- DROP DATABASE IF EXISTS music_app;
 -- CREATE DATABASE music_app;
@@ -129,7 +128,6 @@
 --     CONSTRAINT unique_user_album_order UNIQUE (user_album_id, track_order)
 -- );
 
->>>>>>> 2f7e338e117e6821779ad3baca562c4caf17289a
 INSERT INTO users (id, username, email, password, date_joined, role) VALUES
 (1, 'user1', 'user1@example.com', 'hashed_password1', '2025-03-01 10:00:00', 1),
 (2, 'user2', 'user2@example.com', 'hashed_password2', '2025-03-02 15:30:00', 2), -- Admin
@@ -157,10 +155,7 @@ INSERT INTO users (id, username, email, password, date_joined, role) VALUES
 (24, 'loki_laufeyson', 'loki@example.com', 'hashed_password24', '2025-03-12 11:00:00', 1),
 (25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00', 1),
 (26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1);
-<<<<<<< HEAD
-=======
--- Profiles
->>>>>>> 2f7e338e117e6821779ad3baca562c4caf17289a
+
 -- Profiles
 INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (1, 1, '1995-05-15', '/profiles/user1.jpg'),
