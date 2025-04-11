@@ -1,156 +1,153 @@
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useRef, useState, useCallback, useMemo, useContext } from "react";
 import axios from "axios";
 
-export const PlayerContext = createContext();
+export const TrackContext = createContext();
+export const PlaybackContext = createContext();
 
-const PlayerContextProvider = (props) => {
-    const audioRef = useRef();
-    const seekBg = useRef();
-    const seekBar = useRef();
+const AudioComponent = () => {
+    const { audioRef } = useContext(PlaybackContext);
+    return <audio ref={audioRef} preload="auto" />;
+};
 
+export const PlayerContextProvider = ({ children }) => {
+    const audioRef = useRef(new Audio());
     const [tracks, setTracks] = useState([]);
-    const [track, setTrack] = useState(null);
-    const [playStatus, setPlayerStatus] = useState(false);
-    const [time, setTime] = useState({
-        currentTime: {
-            second: 0,
-            minute: 0,
-        },
-        totalTime: {
-            second: 0,
-            minute: 0,
-        },
-    });
+    const [artists, setArtists] = useState([]);
+    const [currentTrack, setCurrentTrack] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isLooping, setIsLooping] = useState(false);
+    const [isShuffling, setIsShuffling] = useState(false);
 
     useEffect(() => {
         const fetchTracks = async () => {
             try {
-                const tracksRes = await axios.get('http://127.0.0.1:8000/api/tracks/');
-                setTracks(tracksRes.data);
-                setTrack(tracksRes.data[0]);
+                const response = await axios.get("http://127.0.0.1:8000/api/tracks/");
+                setTracks(response.data);
+                const artistsResponse = await axios.get("http://127.0.0.1:8000/api/artists/");
+                setArtists(artistsResponse.data);
             } catch (error) {
-                console.error('Error fetching tracks:', error);
+                // Giữ lại error log để phát hiện lỗi fetch
             }
         };
         fetchTracks();
     }, []);
-
-    const play = () => {
-        if (audioRef.current) {
-            audioRef.current.play();
-            setPlayerStatus(true);
-        }
+    const getArtistName = (artistId) => {
+        const artist = artists.find(a => a.id === artistId);
+        return artist ? artist.name : "Unknown Artist";
     };
 
-    const pause = () => {
+    const play = useCallback(() => {
+        if (audioRef.current && currentTrack) {
+            audioRef.current.play()
+                .then(() => setIsPlaying(true))
+                .catch(() => setIsPlaying(false));
+        }
+    }, [currentTrack]);
+
+    const pause = useCallback(() => {
         if (audioRef.current) {
             audioRef.current.pause();
-            setPlayerStatus(false);
+            setIsPlaying(false);
         }
-    };
+    }, []);
 
-    const playWithID = async (id) => {
-        const selectedTrack = tracks.find((t) => t.id === id);
-        if (selectedTrack && audioRef.current) {
-            await setTrack(selectedTrack);
-            audioRef.current.src = `http://127.0.0.1:8000/media${selectedTrack.file}`;
-            await audioRef.current.play();
-            setPlayerStatus(true);
+    const playTrackById = useCallback((id) => {
+        const track = tracks.find(t => t.id === id);
+        if (track && audioRef.current) {
+            setCurrentTrack(track);
+            audioRef.current.src = `http://127.0.0.1:8000/media${track.file}`;
+            audioRef.current.load();
+            audioRef.current.play()
+                .then(() => setIsPlaying(true))
+                .catch(() => setIsPlaying(false));
         }
-    };
+    }, [tracks]);
 
-    const previous = async () => {
-        const currentIndex = tracks.findIndex((t) => t.id === track.id);
+    const previous = useCallback(() => {
+        const currentIndex = tracks.findIndex(t => t.id === currentTrack?.id);
         if (currentIndex > 0 && audioRef.current) {
             const prevTrack = tracks[currentIndex - 1];
-            await setTrack(prevTrack);
+            setCurrentTrack(prevTrack);
             audioRef.current.src = `http://127.0.0.1:8000/media${prevTrack.file}`;
-            await audioRef.current.play();
-            setPlayerStatus(true);
+            audioRef.current.load();
+            audioRef.current.play()
+                .then(() => setIsPlaying(true))
+                .catch(() => setIsPlaying(false));
         }
-    };
+    }, [tracks, currentTrack]);
 
-    const next = async () => {
-        const currentIndex = tracks.findIndex((t) => t.id === track.id);
-        if (currentIndex < tracks.length - 1 && audioRef.current) {
-            const nextTrack = tracks[currentIndex + 1];
-            await setTrack(nextTrack);
+    const next = useCallback(() => {
+        const currentIndex = tracks.findIndex(t => t.id === currentTrack?.id);
+        let nextTrack;
+        if (isShuffling) {
+            const randomIndex = Math.floor(Math.random() * tracks.length);
+            nextTrack = tracks[randomIndex];
+        } else if (currentIndex < tracks.length - 1) {
+            nextTrack = tracks[currentIndex + 1];
+        } else {
+            nextTrack = tracks[0];
+        }
+        if (nextTrack && audioRef.current) {
+            setCurrentTrack(nextTrack);
             audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
-            await audioRef.current.play();
-            setPlayerStatus(true);
+            audioRef.current.load();
+            audioRef.current.play()
+                .then(() => setIsPlaying(true))
+                .catch(() => setIsPlaying(false));
         }
-    };
-
-    const seekSong = (e) => {
-        if (audioRef.current && seekBg.current) {
-            audioRef.current.currentTime =
-                (e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration;
-        }
-    };
+    }, [tracks, currentTrack, isShuffling]);
 
     useEffect(() => {
+        const handleEnded = () => {
+            if (isLooping) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play();
+            } else {
+                next();
+            }
+        };
         const audio = audioRef.current;
+        audio.addEventListener("ended", handleEnded);
+        return () => audio.removeEventListener("ended", handleEnded);
+    }, [isLooping, next]);
 
-        if (audio) {
-            const handleTimeUpdate = () => {
-                if (audio.duration) {
-                    seekBar.current.style.width = `${Math.floor((audio.currentTime / audio.duration) * 100)}%`;
-                    setTime({
-                        currentTime: {
-                            second: Math.floor(audio.currentTime % 60),
-                            minute: Math.floor(audio.currentTime / 60),
-                        },
-                        totalTime: {
-                            second: Math.floor(audio.duration % 60),
-                            minute: Math.floor(audio.duration / 60),
-                        },
-                    });
-                }
-            };
-
-            audio.onloadedmetadata = () => {
-                audio.ontimeupdate = handleTimeUpdate;
-            };
-
-            // Cleanup
-            return () => {
-                audio.ontimeupdate = null;
-                audio.onloadedmetadata = null;
-            };
+    const toggleLoop = useCallback(() => {
+        setIsLooping(prev => !prev);
+        if (audioRef.current) {
+            audioRef.current.loop = !isLooping;
         }
-    }, [track]); // Thêm track vào dependency để cập nhật khi track thay đổi
+    }, [isLooping]);
 
-    const contextValue = {
+    const toggleShuffle = useCallback(() => {
+        setIsShuffling(prev => !prev);
+    }, []);
+
+    const trackContextValue = useMemo(() => ({
+        tracks,
+        currentTrack,
+        playTrackById,
+        getArtistName
+    }), [tracks, currentTrack, playTrackById, artists]);
+
+    const playbackContextValue = useMemo(() => ({
         audioRef,
-        seekBg,
-        seekBar,
-        track,
-        setTrack,
-        playStatus,
-        setPlayerStatus,
-        time,
-        setTime,
+        isPlaying,
         play,
         pause,
-        playWithID,
         previous,
         next,
-        seekSong,
-        tracks,
-    };
+        isLooping,
+        toggleLoop,
+        isShuffling,
+        toggleShuffle
+    }), [audioRef, isPlaying, play, pause, previous, next, isLooping, toggleLoop, isShuffling, toggleShuffle]);
 
     return (
-        <PlayerContext.Provider value={contextValue}>
-            {props.children}
-            {/* Render phần tử <audio> với ref */}
-            {track && (
-                <audio
-                    ref={audioRef}
-                    src={track ? `http://127.0.0.1:8000/media${track.file}` : ""}
-                />
-            )}
-        </PlayerContext.Provider>
+        <TrackContext.Provider value={trackContextValue}>
+            <PlaybackContext.Provider value={playbackContextValue}>
+                {children}
+                <AudioComponent />
+            </PlaybackContext.Provider>
+        </TrackContext.Provider>
     );
 };
-
-export default PlayerContextProvider;

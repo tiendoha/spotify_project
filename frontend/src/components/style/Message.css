@@ -1,4 +1,4 @@
-body{margin-top:20px;}
+/* body{margin-top:20px;} */
 
 .chat-online {
     color: #34ce57
@@ -29,17 +29,21 @@ body{margin-top:20px;}
     flex-direction: row-reverse;
     margin-left: auto
 }
+
 .py-3 {
-    padding-top: 1rem!important;
-    padding-bottom: 1rem!important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
 }
+
 .px-4 {
-    padding-right: 1.5rem!important;
-    padding-left: 1.5rem!important;
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
 }
+
 .flex-grow-0 {
-    flex-grow: 0!important;
+    flex-grow: 0 !important;
 }
+
 .border-top {
-    border-top: 1px solid #dee2e6!important;
+    border-top: 1px solid #dee2e6 !important;
 }
