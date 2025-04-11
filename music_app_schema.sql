@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 119f483296a337f60a191e29e6f6e33cdc2cc151
 -- -- Xóa database cũ (nếu cần) và tạo mới --
 -- DROP DATABASE IF EXISTS music_app;
 -- CREATE DATABASE music_app;
