@@ -40,6 +40,7 @@ const Player = () => {
             toast.error("No track or file available to download!", {
                 position: "top-left",
                 autoClose: 3000,
+                icon: "🎵",
             });
             return;
         }
@@ -74,12 +75,14 @@ const Player = () => {
             toast.success("Download started successfully!", {
                 position: "top-left",
                 autoClose: 3000,
+                icon: "🎵",
             });
         } catch (error) {
             console.error("Download failed:", error);
             toast.error(`Failed to download the track: ${error.message}`, {
                 position: "top-left",
                 autoClose: 3000,
+                icon: "🎵",
             });
         } finally {
             setIsDownloading(false);
@@ -102,6 +105,7 @@ const Player = () => {
                 toast.error("Failed to share the track!", {
                     position: "top-left",
                     autoClose: 3000,
+                    icon: "🎵",
                 });
             }
         } else {
@@ -109,12 +113,14 @@ const Player = () => {
                 toast.success("Link copied to clipboard!", {
                     position: "top-left",
                     autoClose: 3000,
+                    icon: "🎵",
                 });
             }).catch(err => {
                 console.error("Failed to copy:", err);
                 toast.error("Failed to copy the link!", {
                     position: "top-left",
                     autoClose: 3000,
+                    icon: "🎵",
                 });
             });
         }
