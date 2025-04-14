@@ -1,9 +1,8 @@
 from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password, make_password
 from django.db.models import Q, Subquery, OuterRef
 from django.utils import timezone
@@ -90,7 +89,7 @@ class RegisterView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -115,7 +114,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -140,7 +139,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 class FollowerViewSet(viewsets.ModelViewSet):
     queryset = Follower.objects.all()
     serializer_class = FollowerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -165,19 +164,18 @@ class FollowerViewSet(viewsets.ModelViewSet):
 class ProfileDetail(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 class SearchUser(generics.ListAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         username = self.kwargs['username']
-        logged_in_user = self.request.user
         return Profile.objects.filter(
             Q(user__username__icontains=username) | 
             Q(user__email__icontains=username)
-        ).exclude(user=logged_in_user)
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -190,7 +188,7 @@ class SearchUser(generics.ListAPIView):
 class ArtistViewSet(viewsets.ModelViewSet):
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -215,7 +213,7 @@ class ArtistViewSet(viewsets.ModelViewSet):
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -240,7 +238,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
 class TrackViewSet(viewsets.ModelViewSet):
     queryset = Track.objects.all()
     serializer_class = TrackSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -265,7 +263,7 @@ class TrackViewSet(viewsets.ModelViewSet):
 class PlaylistViewSet(viewsets.ModelViewSet):
     queryset = Playlist.objects.all()
     serializer_class = PlaylistSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -290,7 +288,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 class PlaylistTrackViewSet(viewsets.ModelViewSet):
     queryset = PlaylistTrack.objects.all()
     serializer_class = PlaylistTrackSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -315,7 +313,7 @@ class PlaylistTrackViewSet(viewsets.ModelViewSet):
 class MusicVideoViewSet(viewsets.ModelViewSet):
     queryset = MusicVideo.objects.all()
     serializer_class = MusicVideoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -340,7 +338,7 @@ class MusicVideoViewSet(viewsets.ModelViewSet):
 class UserAlbumViewSet(viewsets.ModelViewSet):
     queryset = UserAlbum.objects.all()
     serializer_class = UserAlbumSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -365,7 +363,7 @@ class UserAlbumViewSet(viewsets.ModelViewSet):
 class UserAlbumTrackViewSet(viewsets.ModelViewSet):
     queryset = UserAlbumTrack.objects.all()
     serializer_class = UserAlbumTrackSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -391,12 +389,12 @@ class UserAlbumTrackViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(sender=self.request.user)  # Gán sender là user hiện tại
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -416,7 +414,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -441,7 +439,7 @@ class LikeViewSet(viewsets.ModelViewSet):
 class SharedListeningInvitationViewSet(viewsets.ModelViewSet):
     queryset = SharedListeningInvitation.objects.all()
     serializer_class = SharedListeningInvitationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -465,7 +463,7 @@ class SharedListeningInvitationViewSet(viewsets.ModelViewSet):
 
 class MyInbox(generics.ListAPIView):
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']
@@ -488,7 +486,7 @@ class MyInbox(generics.ListAPIView):
 
 class GetMessages(generics.ListAPIView):
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         sender_id = self.kwargs['sender_id']
@@ -500,7 +498,7 @@ class GetMessages(generics.ListAPIView):
 
 class SendMessages(generics.CreateAPIView):
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
+        serializer.save()
