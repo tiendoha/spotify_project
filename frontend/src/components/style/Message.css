@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Message.css */
+=======
+/* body{margin-top:20px;} */
+>>>>>>> b43c57be62803e61da2f46d26c863d032f0e6c74
 
 /* Reset mặc định và thiết lập font */
 * {
@@ -144,6 +148,7 @@
   
   .message-item.sent {
     flex-direction: row-reverse;
+<<<<<<< HEAD
   }
   
   .message-profile-image {
@@ -275,3 +280,25 @@
       font-size: 12px;
     }
   }
+=======
+    margin-left: auto
+}
+
+.py-3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.px-4 {
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
+}
+
+.flex-grow-0 {
+    flex-grow: 0 !important;
+}
+
+.border-top {
+    border-top: 1px solid #dee2e6 !important;
+}
+>>>>>>> b43c57be62803e61da2f46d26c863d032f0e6c74
