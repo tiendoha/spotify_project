@@ -60,14 +60,21 @@ class LikeSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    receiver = UserSerializer(read_only=True)
     sender_profile = ProfileSerializer(read_only=True, source='sender.profile')
     receiver_profile = ProfileSerializer(read_only=True, source='receiver.profile')
 
     class Meta:
         model = Message
         fields = ['id', 'sender', 'receiver', 'sender_profile', 'receiver_profile', 'content', 'sent_at', 'is_read']
+        read_only_fields = ['id', 'sender', 'sent_at', 'is_read']  # Đảm bảo is_read là read-only
 
-
+    def create(self, validated_data):
+        validated_data['is_read'] = False  # Luôn đặt is_read = False khi tạo mới
+        return super().create(validated_data)
+    
+    
 class SharedListeningInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SharedListeningInvitation
@@ -90,21 +97,6 @@ class UserAlbumTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAlbumTrack
         fields = ['id', 'user_album', 'track', 'track_order']
-
-
-# Các serializer bổ sung từ code cũ
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        profile = getattr(user, 'profile', None)
-        token['username'] = user.username
-        token['email'] = user.email
-        token['date_joined'] = user.date_joined.isoformat()
-        if profile:
-            token['profile_image'] = str(profile.profile_image) if profile.profile_image else None
-            token['date_of_birth'] = profile.date_of_birth.isoformat() if profile.date_of_birth else None
-        return token
 
 
 class RegisterSerializer(serializers.ModelSerializer):

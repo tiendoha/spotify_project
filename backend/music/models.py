@@ -11,7 +11,8 @@ class User(AbstractUser):
     is_active = None
     first_name = None
     last_name = None
-
+    is_active = models.BooleanField(default=True)
+    
     email = models.EmailField(max_length=254, unique=True)
     date_joined = models.DateTimeField()  # Sửa thành DateTimeField
     role = models.IntegerField(default=1, choices=((1, 'User'), (2, 'Admin')))

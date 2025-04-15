@@ -3,11 +3,12 @@ import Sidebar from './components/Sidebar';
 import Player from './components/Player';
 import Display from './components/Display';
 import { PlayerContext } from './context/PlayerContext';
-import { AuthProvider } from './context/AuthContext'
-import Login from './components/Login';
+import { AuthProvider } from './context/AuthContext';
+import Login from './components/LogIn';
 import SignUp from './components/SignUp';
-import Messages from './components/Messages';
-import MessageDetail from './components/MessageDetail'; // Import MessageDetail
+import Messages from './components/Messages'; // Thêm Messages
+import MessageDetail from './components/MessageDetail'; // Thêm MessageDetail
+import SearchUsers from './components/SearchUsers'; // Thêm SearchUsers
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import "./App.css";
 
@@ -37,27 +38,16 @@ const App = () => {
     </div>
   );
 
-  const MessagesLayout = () => (
-    <div className="app h-screen bg-black">
-      <Messages />
-    </div>
-  );
-
-  const MessageDetailLayout = () => (
-    <div className="app h-screen bg-black">
-      <MessageDetail />
-    </div>
-  );
-
   return (
     <AuthProvider>
-    <Routes>
-          <Route path="/login" element={<LoginLayout />} />
-          <Route path="/signup" element={<SignupLayout />} />
-          <Route path="/inbox" element={<MessagesLayout />} />
-          <Route path="/inbox/:id" element={<MessageDetailLayout />} />
-          <Route path="/*" element={<MainLayout />} />
-    </Routes>
+      <Routes>
+        <Route path="/login" element={<LoginLayout />} />
+        <Route path="/signup" element={<SignupLayout />} />
+        <Route path="/messages" element={<Messages />} />
+      <Route path="/messages/:otherUserId" element={<MessageDetail />} />
+        <Route path="/search-users" element={<SearchUsers />} />
+        <Route path="/*" element={<MainLayout />} />
+      </Routes>
     </AuthProvider>
   );
 };

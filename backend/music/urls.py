@@ -5,9 +5,9 @@ from .views import (
     PlaylistViewSet, PlaylistTrackViewSet, FollowerViewSet, LikeViewSet,
     MessageViewSet, SharedListeningInvitationViewSet, MusicVideoViewSet,
     UserAlbumViewSet, UserAlbumTrackViewSet, MyInbox, GetMessages,
-    SendMessages, ProfileDetail, SearchUser
+    SendMessages, ProfileDetail, SearchUser, ChatbotView,
+    LoginView, RegisterView
 )
-from .views import LoginView, RegisterView
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -26,8 +26,7 @@ router.register(r'user-albums', UserAlbumViewSet)
 router.register(r'user-album-tracks', UserAlbumTrackViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),  # Các route từ router (ViewSet)
-    # Các route cho view generics
+    path('', include(router.urls)),
     path('inbox/<int:user_id>/', MyInbox.as_view(), name='my-inbox'),
     path('messages/<int:sender_id>/<int:receiver_id>/', GetMessages.as_view(), name='get-messages'),
     path('send-message/', SendMessages.as_view(), name='send-message'),
@@ -35,4 +34,5 @@ urlpatterns = [
     path('search/<str:username>/', SearchUser.as_view(), name='search-user'),
     path('login/', LoginView.as_view(), name='login'),
     path('register/', RegisterView.as_view(), name='register'),
+    path('chatbot/', ChatbotView.as_view(), name='chatbot'),
 ]
