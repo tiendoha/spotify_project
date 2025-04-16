@@ -92,7 +92,10 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -117,7 +120,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -142,7 +148,10 @@ class FollowerViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -191,7 +200,10 @@ class ArtistViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -216,7 +228,10 @@ class AlbumViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -241,7 +256,10 @@ class TrackViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -266,7 +284,10 @@ class PlaylistViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -274,10 +295,13 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        print("Dữ liệu gửi lên:", request.data)  # Log để debug
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            print("Dữ liệu sau khi cập nhật:", serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        print("Lỗi từ serializer:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
@@ -291,7 +315,10 @@ class PlaylistTrackViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -316,7 +343,10 @@ class MusicVideoViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -341,7 +371,10 @@ class UserAlbumViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -366,7 +399,10 @@ class UserAlbumTrackViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -392,7 +428,10 @@ class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -417,7 +456,10 @@ class LikeViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -442,7 +484,10 @@ class SharedListeningInvitationViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -499,6 +544,16 @@ class GetMessages(generics.ListAPIView):
 class SendMessages(generics.CreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        if 'id' in data:
+            del data['id']  # Loại bỏ trường 'id' để cơ sở dữ liệu tự động tăng
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_create(self, serializer):
         serializer.save()

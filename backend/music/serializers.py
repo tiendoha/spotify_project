@@ -11,85 +11,86 @@ from django.utils import timezone
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password','date_joined']
-
+        fields = '__all__'  # Hoặc liệt kê các trường cụ thể
+        read_only_fields = ['id']
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['id', 'user', 'date_of_birth', 'profile_image']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
-        fields = ['id', 'name', 'image']  # Xóa genre
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album
-        fields = ['id', 'name', 'release_date', 'image', 'artist']
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class TrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Track
-        fields = ['id', 'name', 'duration', 'file', 'image', 'artist', 'album', 'genre']  # Thêm image và genre
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
-        fields = ['id', 'name', 'image', 'user']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class PlaylistTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaylistTrack
-        fields = ['id', 'playlist', 'track', 'track_order']
+        fields = '__all__'
+        read_only_fields = ['id']
 
-
-class FollowerSerializer(serializers.ModelSerializer):  # Sửa tên thành số ít cho nhất quán
+class FollowerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follower
-        fields = ['id', 'user', 'artist']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ['id', 'user', 'track', 'liked_at']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender_profile = ProfileSerializer(read_only=True, source='sender.profile')
-    receiver_profile = ProfileSerializer(read_only=True, source='receiver.profile')
-
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'receiver', 'sender_profile', 'receiver_profile', 'content', 'sent_at', 'is_read']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class SharedListeningInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SharedListeningInvitation
-        fields = ['id', 'sender', 'receiver', 'track', 'start_time', 'current_position', 'created_at', 'status']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class MusicVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MusicVideo
-        fields = ['id', 'track', 'video_file', 'duration', 'uploaded_at']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class UserAlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAlbum
-        fields = ['id', 'name', 'user', 'image', 'created_at']
-
+        fields = '__all__'
+        read_only_fields = ['id']
 
 class UserAlbumTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAlbumTrack
-        fields = ['id', 'user_album', 'track', 'track_order']
+        fields = '__all__'
+        read_only_fields = ['id']
 
 
 # Các serializer bổ sung từ code cũ
