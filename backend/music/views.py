@@ -211,10 +211,13 @@ class ArtistViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        print("Dữ liệu gửi lên:", request.data)  # Log dữ liệu gửi lên
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            print("Dữ liệu sau khi cập nhật:", serializer.data)  # Log dữ liệu sau cập nhật
             return Response(serializer.data, status=status.HTTP_200_OK)
+        print("Lỗi từ serializer:", serializer.errors)  # Log lỗi nếu có
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
@@ -295,13 +298,10 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        print("Dữ liệu gửi lên:", request.data)  # Log để debug
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            print("Dữ liệu sau khi cập nhật:", serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        print("Lỗi từ serializer:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):

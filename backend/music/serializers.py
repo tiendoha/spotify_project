@@ -8,6 +8,8 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils import timezone
 
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -63,11 +65,24 @@ class LikeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    receiver = UserSerializer(read_only=True)
+    sender_profile = ProfileSerializer(read_only=True, source='sender.profile')
+    receiver_profile = ProfileSerializer(read_only=True, source='receiver.profile')
+
     class Meta:
         model = Message
         fields = '__all__'
         read_only_fields = ['id']
 
+        fields = ['id', 'sender', 'receiver', 'sender_profile', 'receiver_profile', 'content', 'sent_at', 'is_read']
+        read_only_fields = ['id', 'sender', 'sent_at', 'is_read']  # Đảm bảo is_read là read-only
+
+    def create(self, validated_data):
+        validated_data['is_read'] = False  # Luôn đặt is_read = False khi tạo mới
+        return super().create(validated_data)
+    
+    
 class SharedListeningInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SharedListeningInvitation
@@ -89,8 +104,7 @@ class UserAlbumSerializer(serializers.ModelSerializer):
 class UserAlbumTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAlbumTrack
-        fields = '__all__'
-        read_only_fields = ['id']
+        fields = ['id', 'user_album', 'track', 'track_order']
 
 
 # Các serializer bổ sung từ code cũ

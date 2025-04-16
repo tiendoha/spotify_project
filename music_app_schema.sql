@@ -1,3 +1,32 @@
+<<<<<<< HEAD
+INSERT INTO users (id, username, email, password, date_joined, role, is_active) VALUES
+(1, 'user1', 'user1@example.com', 'hashed_password1', '2025-03-01 10:00:00', 1, TRUE),
+(2, 'user2', 'user2@example.com', 'hashed_password2', '2025-03-02 15:30:00', 2, TRUE), -- Admin
+(3, 'user3', 'user3@example.com', 'hashed_password3', '2025-03-03 09:15:00', 1, TRUE),
+(4, 'user4', 'user4@example.com', 'hashed_password4', '2025-03-05 14:00:00', 1, TRUE),
+(5, 'user5', 'user5@example.com', 'hashed_password5', '2025-03-06 09:30:00', 1, TRUE),
+(6, 'user6', 'user6@example.com', 'hashed_password6', '2025-03-07 11:15:00', 1, TRUE),
+(7, 'john_doe', 'john@example.com', 'hashed_password7', '2025-03-08 08:00:00', 1, TRUE),
+(8, 'jane_smith', 'jane@example.com', 'hashed_password8', '2025-03-08 09:00:00', 1, TRUE),
+(9, 'mike_jones', 'mike@example.com', 'hashed_password9', '2025-03-08 10:00:00', 1, TRUE),
+(10, 'emma_watson', 'emma@example.com', 'hashed_password10', '2025-03-08 11:00:00', 1, TRUE),
+(11, 'peter_parker', 'peter@example.com', 'hashed_password11', '2025-03-09 12:00:00', 1, TRUE),
+(12, 'sarah_connor', 'sarah@example.com', 'hashed_password12', '2025-03-09 13:00:00', 1, TRUE),
+(13, 'david_bowie', 'david@example.com', 'hashed_password13', '2025-03-09 14:00:00', 1, TRUE),
+(14, 'linda_hamilton', 'linda@example.com', 'hashed_password14', '2025-03-09 15:00:00', 1, TRUE),
+(15, 'chris_evans', 'chris@example.com', 'hashed_password15', '2025-03-10 16:00:00', 1, TRUE),
+(16, 'natasha_romanoff', 'natasha@example.com', 'hashed_password16', '2025-03-10 17:00:00', 1, TRUE),
+(17, 'tony_stark', 'tony@example.com', 'hashed_password17', '2025-03-10 18:00:00', 1, TRUE),
+(18, 'bruce_wayne', 'bruce@example.com', 'hashed_password18', '2025-03-11 19:00:00', 1, TRUE),
+(19, 'clark_kent', 'clark@example.com', 'hashed_password19', '2025-03-11 20:00:00', 1, TRUE),
+(20, 'diana_prince', 'diana@example.com', 'hashed_password20', '2025-03-11 21:00:00', 1, TRUE),
+(21, 'steve_rogers', 'steve@example.com', 'hashed_password21', '2025-03-12 08:00:00', 1, TRUE),
+(22, 'wanda_maximoff', 'wanda@example.com', 'hashed_password22', '2025-03-12 09:00:00', 1, TRUE),
+(23, 'thor_odinson', 'thor@example.com', 'hashed_password23', '2025-03-12 10:00:00', 1, TRUE),
+(24, 'loki_laufeyson', 'loki@example.com', 'hashed_password24', '2025-03-12 11:00:00', 1, TRUE),
+(25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00', 1, TRUE),
+(26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1, TRUE);
+=======
 -- -- Xóa database cũ (nếu cần) và tạo mới --
 -- DROP DATABASE IF EXISTS music_app;
 -- CREATE DATABASE music_app;
@@ -155,6 +184,7 @@ INSERT INTO users (id, username, email, password, date_joined, role) VALUES
 (25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00', 1),
 (26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1);
 
+>>>>>>> b43c57be62803e61da2f46d26c863d032f0e6c74
 -- Profiles
 INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (1, 1, '1995-05-15', '/profiles/user1.jpg'),
@@ -183,7 +213,6 @@ INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (24, 24, '1990-06-30', NULL),
 (25, 25, '1996-07-10', '/profiles/gamora.png'),
 (26, 26, '1994-08-15', '/profiles/peterq.png');
-
 -- Artists
 INSERT INTO artists (id, name, image) VALUES
 (1, 'Taylor Swift', '/artists/taylor.png'),
@@ -531,6 +560,8 @@ INSERT INTO messages (id, sender_id, receiver_id, content, sent_at, is_read) VAL
 (28, 4, 5, 'Thanks, glad you enjoyed!', '2025-03-05 09:45:00', TRUE),
 (29, 2, 3, 'New jazz mix up!', '2025-03-05 09:50:00', FALSE),
 (30, 3, 2, 'Can’t wait to hear it!', '2025-03-05 09:55:00', TRUE);
+
+SELECT setval('messages_id_seq', (SELECT MAX(id) FROM messages) + 1);
 
 INSERT INTO shared_listening_invitations (id, sender_id, receiver_id, track_id, start_time, current_position, created_at, status) VALUES
 (1, 1, 2, 1, '2025-03-04 12:00:00', '00:01:05', '2025-03-04 12:01:05', 'pending'),
