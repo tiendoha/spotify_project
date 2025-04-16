@@ -3,7 +3,6 @@ import Sidebar from "./components/Sidebar";
 import Player from "./components/Player";
 import Display from "./components/Display";
 import { PlayerContextProvider } from "./context/PlayerContext";
-import { AuthProvider } from "./context/AuthContext";
 import Login from "./components/LogIn";
 import SignUp from "./components/SignUp";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
@@ -34,15 +33,13 @@ const App = () => {
   );
 
   return (
-    <AuthProvider>
-      <PlayerContextProvider>
-          <Routes>
-            <Route path="/login" element={<LoginLayout />} />
-            <Route path="/signup" element={<SignupLayout />} />
-            <Route path="/*" element={<MainLayout />} />
-          </Routes>
-      </PlayerContextProvider>
-    </AuthProvider>
+    <PlayerContextProvider>
+        <Routes>
+          <Route path="/login" element={<LoginLayout />} />
+          <Route path="/signup" element={<SignupLayout />} />
+          <Route path="/*" element={<MainLayout />} />
+        </Routes>
+    </PlayerContextProvider>
   );
 };
 

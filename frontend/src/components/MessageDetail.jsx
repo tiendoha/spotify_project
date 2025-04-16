@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const MessageDetail = ({ currentUserId, otherUserId }) => {
+const MessageDetail = ({ currentUserId, otherUserId, token }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
@@ -23,11 +23,17 @@ const MessageDetail = ({ currentUserId, otherUserId }) => {
   const handleSend = async () => {
     if (!newMessage.trim()) return;
     try {
-      await axios.post(`http://127.0.0.1:8000/api/send-message/`, {
-        sender: currentUserId,
-        receiver: otherUserId,
-        content: newMessage,
-      });
+      await axios.post(
+        `http://127.0.0.1:8000/api/send-message/`,
+        {
+          sender: currentUserId,
+          receiver: otherUserId,
+          content: newMessage,
+        },
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
       setMessages([...messages, { sender: currentUserId, content: newMessage }]);
       setNewMessage("");
     } catch (error) {

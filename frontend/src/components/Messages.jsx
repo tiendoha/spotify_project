@@ -6,8 +6,8 @@ const Messages = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  // Giả định currentUserId, thay bằng logic thực tế nếu có
-  const currentUserId = 1;
+  const token = localStorage.getItem("token");
+  const currentUserId = parseInt(localStorage.getItem("user_id"));
 
   // Tìm kiếm người dùng
   const handleSearch = async (e) => {
@@ -19,7 +19,10 @@ const Messages = () => {
     }
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/search/${term}/`
+        `http://127.0.0.1:8000/api/search/${term}/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
       );
       setSearchResults(response.data);
     } catch (error) {
@@ -48,15 +51,15 @@ const Messages = () => {
           <ul className="space-y-2 max-h-[60vh] overflow-auto">
             {searchResults.map((result) => (
               <li
-                key={result.id}
-                onClick={() => handleUserSelect(result.id)}
+                key={result.user.id}
+                onClick={() => handleUserSelect(result.user.id)}
                 className={`p-2 rounded cursor-pointer ${
-                  selectedUserId === result.id
+                  selectedUserId === result.user.id
                     ? "bg-green-600"
                     : "bg-gray-700 hover:bg-gray-600"
                 }`}
               >
-                {result.username}
+                {result.user.username}
               </li>
             ))}
           </ul>
@@ -66,10 +69,11 @@ const Messages = () => {
       </div>
       {/* Cột phải: MessageDetail */}
       <div className="w-full lg:w-7/10">
-        {selectedUserId ? (
+        {currentUserId && selectedUserId ? (
           <MessageDetail
-            otherUserId={selectedUserId}
             currentUserId={currentUserId}
+            otherUserId={selectedUserId}
+            token={token}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400">
