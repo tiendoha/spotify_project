@@ -5,8 +5,7 @@ from .views import (
     PlaylistViewSet, PlaylistTrackViewSet, FollowerViewSet, LikeViewSet,
     MessageViewSet, SharedListeningInvitationViewSet, MusicVideoViewSet,
     UserAlbumViewSet, UserAlbumTrackViewSet, MyInbox, GetMessages,
-    SendMessages, ProfileDetail, SearchUser, ChatbotView,
-    LoginView, RegisterView
+    SendMessages, ProfileDetail, SearchUser, LoginView, RegisterView
 )
 
 router = DefaultRouter()
@@ -34,5 +33,4 @@ urlpatterns = [
     path('search/<str:username>/', SearchUser.as_view(), name='search-user'),
     path('login/', LoginView.as_view(), name='login'),
     path('register/', RegisterView.as_view(), name='register'),
-    path('chatbot/', ChatbotView.as_view(), name='chatbot'),
 ]
