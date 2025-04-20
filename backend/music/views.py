@@ -185,26 +185,34 @@ class LoginView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Tên người dùng không tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
 
+from rest_framework.views import exception_handler
+
 class RegisterView(APIView):
     def post(self, request):
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
+        try:
+            username = request.data.get('username')
+            email = request.data.get('email')
+            password = request.data.get('password')
 
-        if not username or not email or not password:
-            return Response({'error': 'Vui lòng cung cấp đầy đủ thông tin'}, status=status.HTTP_400_BAD_REQUEST)
+            if not username or not email or not password:
+                return Response({'error': 'Vui lòng cung cấp đầy đủ thông tin'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(username=username).exists():
-            return Response({'error': 'Tên người dùng đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
-        if User.objects.filter(email=email).exists():
-            return Response({'error': 'Email đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(username=username).exists():
+                return Response({'error': 'Tên người dùng đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(email=email).exists():
+                return Response({'error': 'Email đã tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User(
-            username=username,
-            email=email,
-            date_joined=timezone.now(),
-            role=1
-        )
-        user.set_password(password)
-        user.save()
-        return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)
+            user = User(
+                username=username,
+                email=email,
+                date_joined=timezone.now(),
+                role=1  # đảm bảo trường này có trong model
+            )
+            user.set_password(password)
+            user.save()
+
+            return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            print(f"Lỗi khi đăng ký: {e}")  # Xem lỗi ở terminal
+            return Response({'error': 'Lỗi máy chủ nội bộ', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
