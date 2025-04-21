@@ -1,5 +1,6 @@
 import { createContext, useEffect, useRef, useState, useCallback, useMemo, useContext } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
 
 export const TrackContext = createContext();
 export const PlaybackContext = createContext();
@@ -13,34 +14,70 @@ export const PlayerContextProvider = ({ children }) => {
     const audioRef = useRef(new Audio());
     const [tracks, setTracks] = useState([]);
     const [artists, setArtists] = useState([]);
+    const [musicVideos, setMusicVideos] = useState([]);
     const [currentTrack, setCurrentTrack] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLooping, setIsLooping] = useState(false);
     const [isShuffling, setIsShuffling] = useState(false);
+    const [musicVideo, setMusicVideo] = useState(null);
 
     useEffect(() => {
         const fetchTracks = async () => {
             try {
-                const response = await axios.get("http://127.0.0.1:8000/api/tracks/");
-                setTracks(response.data);
+                // Fetch tracks
+                const tracksResponse = await axios.get("http://127.0.0.1:8000/api/tracks/");
+                setTracks(tracksResponse.data);
+
+                // Fetch artists
                 const artistsResponse = await axios.get("http://127.0.0.1:8000/api/artists/");
                 setArtists(artistsResponse.data);
+
+                // Fetch tất cả MV
+                const mvResponse = await axios.get("http://127.0.0.1:8000/api/music-videos/");
+                const mvs = mvResponse.data;
+                const formattedMVs = Array.isArray(mvs) ? mvs.map(mv => ({
+                    ...mv,
+                    video_url: `http://127.0.0.1:8000/media${mv.video_file}`
+                })) : [];
+                setMusicVideos(formattedMVs);
             } catch (error) {
-                // Giữ lại error log để phát hiện lỗi fetch
+                console.error("Error fetching data:", error);
+                toast.error("Failed to fetch tracks or music videos!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
             }
         };
         fetchTracks();
     }, []);
+
     const getArtistName = (artistId) => {
         const artist = artists.find(a => a.id === artistId);
         return artist ? artist.name : "Unknown Artist";
     };
 
+    const findMVbyId = useCallback((trackId) => {
+        if (!trackId) return null;
+
+        const mv = musicVideos.find(mv => mv.track === trackId || mv.track === Number(trackId)) || null;
+        setMusicVideo(mv);
+        return mv;
+    }, [musicVideos]);
+
     const play = useCallback(() => {
         if (audioRef.current && currentTrack) {
             audioRef.current.play()
-                .then(() => setIsPlaying(true))
-                .catch(() => setIsPlaying(false));
+                .then(() => {
+                    setIsPlaying(true);
+                })
+                .catch((error) => {
+                    console.error("Error playing track:", error);
+                    setIsPlaying(false);
+                    toast.error("Failed to play the track!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                });
         }
     }, [currentTrack]);
 
@@ -59,7 +96,19 @@ export const PlayerContextProvider = ({ children }) => {
             audioRef.current.load();
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
-                .catch(() => setIsPlaying(false));
+                .catch((error) => {
+                    console.error("Error playing track:", error);
+                    setIsPlaying(false);
+                    toast.error("Failed to play the track!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                });
+        } else {
+            toast.error("Track not found!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
         }
     }, [tracks]);
 
@@ -72,7 +121,14 @@ export const PlayerContextProvider = ({ children }) => {
             audioRef.current.load();
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
-                .catch(() => setIsPlaying(false));
+                .catch((error) => {
+                    console.error("Error playing previous track:", error);
+                    setIsPlaying(false);
+                    toast.error("Failed to play the previous track!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                });
         }
     }, [tracks, currentTrack]);
 
@@ -93,7 +149,14 @@ export const PlayerContextProvider = ({ children }) => {
             audioRef.current.load();
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
-                .catch(() => setIsPlaying(false));
+                .catch((error) => {
+                    console.error("Error playing next track:", error);
+                    setIsPlaying(false);
+                    toast.error("Failed to play the next track!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                });
         }
     }, [tracks, currentTrack, isShuffling]);
 
@@ -101,7 +164,12 @@ export const PlayerContextProvider = ({ children }) => {
         const handleEnded = () => {
             if (isLooping) {
                 audioRef.current.currentTime = 0;
-                audioRef.current.play();
+                audioRef.current.play()
+                    .then(() => setIsPlaying(true))
+                    .catch((error) => {
+                        console.error("Error looping track:", error);
+                        setIsPlaying(false);
+                    });
             } else {
                 next();
             }
@@ -126,8 +194,10 @@ export const PlayerContextProvider = ({ children }) => {
         tracks,
         currentTrack,
         playTrackById,
-        getArtistName
-    }), [tracks, currentTrack, playTrackById, artists]);
+        getArtistName,
+        musicVideo,
+        findMVbyId,
+    }), [tracks, currentTrack, playTrackById, artists, findMVbyId, musicVideo]);
 
     const playbackContextValue = useMemo(() => ({
         audioRef,

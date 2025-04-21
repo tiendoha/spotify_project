@@ -40,7 +40,7 @@ const DisplayHome = () => {
                 </div>
             </div>
             <div className="mb-4">
-                <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
+                <h1 className='my-5 font-bold text-2xl'>Top Albums</h1>
                 <div className="flex overflow-auto">
                     {albums.map((item) => (<AlbumItem key={item.id} name={item.name} desc={item.release_date} artist_name={getArtistName(item.artist)} id={item.id} image={item.image} />))}
                 </div>

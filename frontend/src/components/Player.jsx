@@ -1,18 +1,58 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import PlayerProgress from "./PlayerProgress";
 import PlayerControls from "./PlayerControls";
 import { TrackContext, PlaybackContext } from "../context/PlayerContext";
-import { ToastContainer, toast } from "react-toastify"; // Import react-toastify
-import "react-toastify/dist/ReactToastify.css"; // Import CSS cho react-toastify
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Modal from "react-modal";
+
+Modal.setAppElement("#root");
 
 const Player = () => {
-    const { currentTrack, getArtistName } = useContext(TrackContext);
-    const { audioRef } = useContext(PlaybackContext);
+    const { currentTrack, getArtistName, findMVbyId, musicVideo } = useContext(TrackContext);
+    const { audioRef, pause, isPlaying, play } = useContext(PlaybackContext);
     const [volume, setVolume] = useState(50);
     const [isMuted, setIsMuted] = useState(false);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
     const [showPlaylistPopup, setShowPlaylistPopup] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isMvModalOpen, setIsMvModalOpen] = useState(false);
+    const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+    const videoRef = useRef(null);
+
+    // Xử lý Picture-in-Picture
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const handleEnterPiP = () => {
+            setIsInPictureInPicture(true);
+            setIsMvModalOpen(false);
+        };
+
+        const handleLeavePiP = () => {
+            setIsInPictureInPicture(false);
+            setIsMvModalOpen(true);
+        };
+
+        const handleEnded = () => {
+            setIsMvModalOpen(false);
+            setIsInPictureInPicture(false);
+            if (document.pictureInPictureElement) {
+                document.exitPictureInPicture();
+            }
+        };
+
+        video.addEventListener("ended", handleEnded);
+        video.addEventListener("enterpictureinpicture", handleEnterPiP);
+        video.addEventListener("leavepictureinpicture", handleLeavePiP);
+
+        return () => {
+            video.removeEventListener("enterpictureinpicture", handleEnterPiP);
+            video.removeEventListener("leavepictureinpicture", handleLeavePiP);
+            video.removeEventListener("ended", handleEnded);
+        };
+    }, []);
 
     const handleVolumeChange = (e) => {
         const newVolume = e.target.value;
@@ -49,29 +89,24 @@ const Player = () => {
         const downloadUrl = `http://127.0.0.1:8000/media${currentTrack.file}`;
 
         try {
-            // Tải file bằng fetch
             const response = await fetch(downloadUrl);
             if (!response.ok) {
                 throw new Error("File not found or inaccessible");
             }
 
-            // Chuyển response thành Blob
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
 
-            // Tạo thẻ <a> để tải file
             const link = document.createElement("a");
             link.href = url;
-            const extension = currentTrack.file.split(".").pop() || "mp3"; // Lấy định dạng file
+            const extension = currentTrack.file.split(".").pop() || "mp3";
             link.download = `${currentTrack.name || "track"}.${extension}`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Giải phóng URL object
             window.URL.revokeObjectURL(url);
 
-            // Thông báo thành công
             toast.success("Download started successfully!", {
                 position: "top-left",
                 autoClose: 3000,
@@ -126,6 +161,75 @@ const Player = () => {
         }
     };
 
+    const handleOpenMvModal = () => {
+        if (!currentTrack) {
+            toast.error("No track selected to view music video!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+            return;
+        }
+
+        const mv = findMVbyId(currentTrack.id);
+        if (!mv) {
+            toast.error("No music video available for this track!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+            return;
+        }
+
+        pause();
+        setIsMvModalOpen(true);
+    };
+
+    const handleCloseMvModal = () => {
+        setIsMvModalOpen(false);
+        setIsInPictureInPicture(false);
+        if (videoRef.current && document.pictureInPictureElement) {
+            document.exitPictureInPicture().catch(err => {
+                console.error("Failed to exit Picture-in-Picture:", err);
+            });
+        }
+    };
+
+    const handlePictureInPicture = async () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        try {
+            if (!document.pictureInPictureEnabled) {
+                toast.error("Picture-in-Picture is not supported in your browser!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+                return;
+            }
+
+            if (!document.pictureInPictureElement) {
+                await video.requestPictureInPicture();
+            }
+        } catch (error) {
+            console.error("Failed to enter Picture-in-Picture:", error);
+            toast.error("Failed to enter Picture-in-Picture mode!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+        }
+    };
+
+    const handleFullscreen = () => {
+        if (videoRef.current) {
+            videoRef.current.requestFullscreen().catch(err => {
+                console.error("Failed to enter fullscreen:", err);
+                toast.error("Failed to enter fullscreen mode!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+            });
+        }
+    };
+
     if (!currentTrack) {
         return (
             <div className="h-[10%] bg-gradient-to-r from-green-950 to-black flex justify-center items-center text-white px-4 py-2 shadow-lg">
@@ -161,11 +265,10 @@ const Player = () => {
 
                 <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] mx-auto">
                     <PlayerControls />
-                    <PlayerProgress />
+                    <PlayerProgress currentTrack={currentTrack} />
                 </div>
 
                 <div className="hidden lg:flex items-center gap-3 opacity-90 w-1/4 max-w-[200px] justify-end relative">
-                    {/* Volume */}
                     <div
                         className="relative group flex items-center"
                         onMouseEnter={() => setShowVolumeSlider(true)}
@@ -200,15 +303,13 @@ const Player = () => {
                         </div>
                     </div>
 
-                    {/* MV */}
                     <div className="relative group">
-                        <i className="fas fa-video w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"></i>
+                        <i onClick={handleOpenMvModal} className="fas fa-video w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"></i>
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                             Music Video
                         </span>
                     </div>
 
-                    {/* Queue */}
                     <div className="relative group">
                         <i className="fas fa-list w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"></i>
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
@@ -216,7 +317,6 @@ const Player = () => {
                         </span>
                     </div>
 
-                    {/* Add to Playlist */}
                     <div className="relative group">
                         <i
                             onClick={() => setShowPlaylistPopup(true)}
@@ -227,7 +327,6 @@ const Player = () => {
                         </span>
                     </div>
 
-                    {/* Download */}
                     <div className="relative group">
                         <i
                             onClick={handleDownload}
@@ -238,7 +337,6 @@ const Player = () => {
                         </span>
                     </div>
 
-                    {/* Share */}
                     <div className="relative group">
                         <i
                             onClick={handleShare}
@@ -249,7 +347,6 @@ const Player = () => {
                         </span>
                     </div>
 
-                    {/* Popup Playlist */}
                     {showPlaylistPopup && (
                         <div className="absolute bottom-full right-0 mb-2 bg-gray-800 p-4 rounded shadow-lg w-48">
                             <h3 className="text-white text-sm font-semibold mb-2">Add to Playlist</h3>
@@ -267,6 +364,60 @@ const Player = () => {
                         </div>
                     )}
                 </div>
+                <Modal
+                    isOpen={isMvModalOpen}
+                    onRequestClose={handleCloseMvModal}
+                    className="bg-gradient-to-br from-green-950 to-black rounded-xl p-6 shadow-2xl border border-gray-700 transition-all duration-300 w-[calc(70vh*16/9)] h-[70vh] mx-auto mt-10"
+                    overlayClassName="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center"
+                >
+                    <div className="flex flex-col items-center h-full">
+                        <div className="flex justify-between items-center w-full mb-4">
+                            <h2 className="text-white text-xl font-bold">
+                                Music Video: {currentTrack.name || "Unknown Track"}
+                            </h2>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handlePictureInPicture}
+                                    className="text-gray-300 hover:text-white transition-colors"
+                                    title="Picture-in-Picture"
+                                >
+                                    <i className="fas fa-window-restore"></i>
+                                </button>
+                                <button
+                                    onClick={handleFullscreen}
+                                    className="text-gray-300 hover:text-white transition-colors"
+                                    title="Fullscreen"
+                                >
+                                    <i className="fas fa-expand"></i>
+                                </button>
+                                <button
+                                    onClick={handleCloseMvModal}
+                                    className="text-gray-300 hover:text-red-500 transition-colors"
+                                    title="Close"
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 w-full max-h-[calc(100%-4rem)] flex items-center justify-center relative aspect-[16/9]">
+                            {musicVideo?.video_url ? (
+                                <video
+                                    ref={videoRef}
+                                    controls
+                                    autoPlay
+                                    className="w-full h-full p-2 rounded-lg shadow-lg"
+                                    src={musicVideo.video_url}
+                                >
+                                    <source src={musicVideo.video_url} type="video/mp4" />
+                                    Your browser does not support the video tag.
+                                </video>
+                            ) : (
+                                <p className="text-gray-400 text-center">No music video available.</p>
+                            )}
+                        </div>
+                    </div>
+                </Modal>
             </div>
         </>
     );
