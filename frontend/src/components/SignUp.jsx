@@ -57,7 +57,10 @@ const Signup = () => {
       setErrors({}); // Xóa lỗi khi thành công
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
-      setErrors({ server: error.response.data.error });
+        const errData = error.response?.data;
+        const errMsg = errData?.error || errData?.detail || "Lỗi không xác định";
+        console.error("Lỗi đăng ký:", errData);
+        setErrors({ server: errMsg });
     }
   };
 

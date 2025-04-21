@@ -1,185 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import './style/Message.css';
-import useAxios from '../utils/useAxios';
-import jwtDecode from 'jwt-decode';
-import { Link, useNavigate } from 'react-router-dom';
-import moment from 'moment';
+import React, { useState } from "react";
+import axios from "axios";
+import MessageDetail from "./MessageDetail";
 
-function Messages() {
-  const baseURL = 'http://127.0.0.1:8000/api';
-  const [messages, setMessages] = useState([]);
-  const [newSearch, setNewSearch] = useState({ search: '' });
-  const axios = useAxios();
-  const navigate = useNavigate();
-
-  // Lấy và giải mã token
-  const token = localStorage.getItem('authTokens');
-  const decoded = jwtDecode(token);
-  const user_id = decoded.user_id;
-
-  // Lấy danh sách tin nhắn khi component mount
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const res = await axios.get(`${baseURL}/inbox/${user_id}/`);
-        setMessages(res.data);
-        console.log('API Response:', res.data); // Log dữ liệu để kiểm tra cấu trúc
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
-    fetchMessages();
-  }, [axios, user_id]);
-
-  // Xử lý thay đổi input tìm kiếm
-  const handleSearchChange = (event) => {
-    setNewSearch({
-      ...newSearch,
-      [event.target.name]: event.target.value,
-    });
-  };
+const Messages = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const token = localStorage.getItem("token");
+  const currentUserId = parseInt(localStorage.getItem("user_id"));
 
   // Tìm kiếm người dùng
-  const searchUser = async () => {
+  const handleSearch = async (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    if (term.trim() === "") {
+      setSearchResults([]);
+      return;
+    }
     try {
-      const res = await axios.get(`${baseURL}/search/${newSearch.search}/`);
-      if (res.data.length === 0) {
-        alert('User does not exist');
-      } else {
-        navigate(`/search/${newSearch.search}/`);
-      }
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/search/${term}/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+      setSearchResults(response.data);
     } catch (error) {
-      alert('User does not exist');
-      console.error('Search error:', error);
+      console.error("Search error:", error);
     }
   };
 
+  // Chọn người dùng để hiển thị hội thoại
+  const handleUserSelect = (userId) => {
+    setSelectedUserId(userId);
+  };
+
   return (
-    <div>
-      <main className="content" style={{ marginTop: '150px' }}>
-        <div className="container p-0">
-          <h1 className="h3 mb-3">Messages</h1>
-          <div className="card">
-            <div className="row g-0">
-              <div className="col-12 col-lg-5 col-xl-3 border-right">
-                <div className="px-4">
-                  <div className="d-flex align-items-center">
-                    <div className="flex-grow-1 d-flex align-items-center mt-2">
-                      <input
-                        type="text"
-                        className="form-control my-3"
-                        placeholder="Search..."
-                        onChange={handleSearchChange}
-                        name="search"
-                      />
-                      <button
-                        className="ml-2"
-                        onClick={searchUser}
-                        style={{ border: 'none', borderRadius: '50%' }}
-                      >
-                        <i className="fas fa-search"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {messages.map((message) => (
-                  <Link
-                    key={message.id}
-                    to={`/inbox/${
-                      message.sender === user_id
-                        ? message.receiver
-                        : message.sender
-                    }/`}
-                    className="list-group-item list-group-item-action border-0"
-                  >
-                    <small>
-                      <div className="badge bg-success float-right text-white">
-                        {moment.utc(message.sent_at).local().fromNow()}
-                      </div>
-                    </small>
-                    <div className="d-flex align-items-start">
-                      {message.sender !== user_id && (
-                        <img
-                          src={
-                            message.sender_profile?.profile_image ||
-                            'https://bootdey.com/img/Content/avatar/avatar3.png'
-                          }
-                          className="rounded-circle mr-1"
-                          alt={message.sender_username || 'Unknown Sender'}
-                          width={40}
-                          height={40}
-                        />
-                      )}
-                      {message.sender === user_id && (
-                        <img
-                          src={
-                            message.receiver_profile?.profile_image ||
-                            'https://bootdey.com/img/Content/avatar/avatar1.png'
-                          }
-                          className="rounded-circle mr-1"
-                          alt={message.receiver_username || 'Unknown Receiver'}
-                          width={40}
-                          height={40}
-                        />
-                      )}
-                      <div className="flex-grow-1 ml-3">
-                        {message.sender === user_id
-                          ? message.receiver_username || 'Unknown Receiver'
-                          : message.sender_username || 'Unknown Sender'}
-                        <div className="small">
-                          <small>{message.content}</small>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-                <hr className="d-block d-lg-none mt-1 mb-0" />
-              </div>
-              <div className="col-12 col-lg-7 col-xl-9">
-                <div className="py-2 px-4 border-bottom d-none d-lg-block">
-                  <div className="d-flex align-items-center py-1">
-                    <div className="position-relative">
-                      <img
-                        src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                        className="rounded-circle mr-1"
-                        alt="Placeholder"
-                        width={40}
-                        height={40}
-                      />
-                    </div>
-                    <div className="flex-grow-1 pl-3">
-                      <strong>Select a conversation</strong>
-                      <div className="text-muted small">
-                        <em>No one selected</em>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="position-relative">
-                  <div className="chat-messages p-4">
-                    <p>Select a conversation to start chatting.</p>
-                  </div>
-                </div>
-                <div className="flex-grow-0 py-3 px-4 border-top">
-                  <div className="input-group">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Type your message"
-                      disabled
-                    />
-                    <button className="btn btn-primary" disabled>
-                      Send
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div className="flex flex-col lg:flex-row h-full gap-4">
+      {/* Cột trái: Ô tìm kiếm + danh sách người dùng */}
+      <div className="w-full lg:w-3/10 bg-gray-900 p-4 rounded">
+        <h2 className="text-xl font-bold mb-4">Conversations</h2>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearch}
+          placeholder="Search for users..."
+          className="w-full p-2 mb-4 bg-gray-800 text-white rounded"
+        />
+        {searchResults.length > 0 ? (
+          <ul className="space-y-2 max-h-[60vh] overflow-auto">
+            {searchResults.map((result) => (
+              <li
+                key={result.user.id}
+                onClick={() => handleUserSelect(result.user.id)}
+                className={`p-2 rounded cursor-pointer ${
+                  selectedUserId === result.user.id
+                    ? "bg-green-600"
+                    : "bg-gray-700 hover:bg-gray-600"
+                }`}
+              >
+                {result.user.username}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-400">Search to start a conversation</p>
+        )}
+      </div>
+      {/* Cột phải: MessageDetail */}
+      <div className="w-full lg:w-7/10">
+        {currentUserId && selectedUserId ? (
+          <MessageDetail
+            currentUserId={currentUserId}
+            otherUserId={selectedUserId}
+            token={token}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-gray-400">
+            Select a conversation to start chatting
           </div>
-        </div>
-      </main>
+        )}
+      </div>
     </div>
   );
-}
+};
 
 export default Messages;

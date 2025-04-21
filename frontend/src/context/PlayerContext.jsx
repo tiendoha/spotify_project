@@ -32,7 +32,7 @@ export const PlayerContextProvider = ({ children }) => {
                 const artistsResponse = await axios.get("http://127.0.0.1:8000/api/artists/");
                 setArtists(artistsResponse.data);
 
-                // Fetch tất cả MV
+                // Fetch t?t c? MV
                 const mvResponse = await axios.get("http://127.0.0.1:8000/api/music-videos/");
                 const mvs = mvResponse.data;
                 const formattedMVs = Array.isArray(mvs) ? mvs.map(mv => ({
