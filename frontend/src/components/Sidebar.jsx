@@ -12,10 +12,10 @@ const Sidebar = () => {
                     <img className='w-6' src={assets.home_icon} alt="" />
                     <p className="font-bold">Home</p>
                 </div>
-                <div className="flex items-center gap-3 pl-8 cursor-pointer">
+                {/* <div className="flex items-center gap-3 pl-8 cursor-pointer">
                     <img className='w-6' src={assets.search_icon} alt="" />
                     <p className="font-bold">Search</p>
-                </div>
+                </div> */}
                 <div onClick={() => navigate(`/messages`)} className="flex items-center gap-3 pl-8 cursor-pointer">
                     <img className='w-6' src={assets.home_icon} alt="" />
                     <p className="font-bold">Messages</p>

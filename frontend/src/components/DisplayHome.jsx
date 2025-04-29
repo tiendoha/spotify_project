@@ -4,10 +4,14 @@ import axios from "axios";
 import AlbumItem from './AlbumItem'
 import SongItem from './SongItem'
 import ArtistItem from './ArtistItem'
+import ArtistModal from './ArtistModel';
+
+
 const DisplayHome = () => {
     const [albums, setAlbums] = useState([]);
     const [tracks, setTracks] = useState([]);
     const [artists, setArtists] = useState([]);
+    const [modalData, setModalData] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,13 +34,30 @@ const DisplayHome = () => {
         const artist = artists.find((a) => a.id === artistId);
         return artist ? artist.name : 'Unknown Artist';
     };
+
+    const handleArtistClick = (artist) => {
+        setModalData(artist);
+      };
+      
+    
+      const closeModal = () => {
+        setModalData(null);
+    };
     return (
         <>
             <Navbar />
             <div className='mb-4'>
                 <h1 className='my-5 font-bold text-2xl'>Top Artists</h1>
                 <div className="flex overflow-auto">
-                    {artists.map((item) => (<ArtistItem key={item.id} name={item.name} id={item.id} image={item.image} />))}
+                    {artists.map((item) => (
+                        <ArtistItem
+                        key={item.id}
+                        name={item.name}
+                        id={item.id}
+                        image={item.image}
+                        onClick={() => handleArtistClick(item)}
+                        />
+                    ))}
                 </div>
             </div>
             <div className="mb-4">
@@ -51,6 +72,13 @@ const DisplayHome = () => {
                     {tracks.map((item) => (<SongItem key={item.id} name={item.name} artist_name={getArtistName(item.artist)} id={item.id} image={item.image} />))}
                 </div>
             </div>
+            {modalData && (
+                <ArtistModal
+                    artist={modalData}
+                    onClose={closeModal}
+                />
+            )}
+
         </>
     )
 }

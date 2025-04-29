@@ -1,5 +1,5 @@
 from rest_framework import viewsets, generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 import logging
 from django.db.models import Q, Subquery, OuterRef
@@ -18,6 +18,12 @@ from .serializers import (
 )
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+from django.apps import apps
+from rest_framework.views import exception_handler
+from django.contrib.auth.models import AnonymousUser
+
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +120,7 @@ class GetMessages(generics.ListAPIView):
 
 class SendMessages(generics.CreateAPIView):
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         logger.info(f"Token từ header: {self.request.headers.get('Authorization')}")
@@ -138,28 +144,59 @@ class SendMessages(generics.CreateAPIView):
 class ProfileDetail(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 class SearchUser(generics.ListAPIView):
     serializer_class = ProfileSerializer
-    queryset = Profile.objects.all()
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        username = self.kwargs['username']
-        logged_in_user = self.request.user
-        users = Profile.objects.filter(
-            Q(user__username__icontains=username) | 
-            Q(user__email__icontains=username)
-        ).exclude(user=logged_in_user)
+        username = self.kwargs.get("username", "").strip()
+        current_user = self.request.user
 
-        if not users.exists():
-            return Response(
-                {"detail": "No users found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        # Tìm tất cả user từng có tin nhắn với current_user
+        message_partners = Message.objects.filter(
+            Q(sender=current_user) | Q(receiver=current_user)
+        ).exclude(
+            Q(sender=current_user, receiver=current_user)
+        ).values(
+            "sender", "receiver"
+        ).annotate(
+            last_message_time=Max("sent_at")
+        )
 
-        serializer = self.get_serializer(users, many=True)
+        partner_ids = set()
+        partner_time_map = {}
+
+        for msg in message_partners:
+            sender = msg["sender"]
+            receiver = msg["receiver"]
+            partner_id = receiver if sender == current_user.id else sender
+            partner_ids.add(partner_id)
+            partner_time_map[partner_id] = msg["last_message_time"]
+
+        # Người đã nhắn tin → lấy profile và gắn thêm thời gian gửi gần nhất
+        messaged_profiles = Profile.objects.filter(user__id__in=partner_ids)
+        for profile in messaged_profiles:
+            profile.last_message_time = partner_time_map.get(profile.user.id)
+
+        # Người chưa nhắn tin nhưng trùng từ khóa
+        if username:
+            other_profiles = Profile.objects.filter(
+                Q(user__username__icontains=username) |
+                Q(user__email__icontains=username)
+            ).exclude(user__id__in=partner_ids).exclude(user=current_user)
+        else:
+            other_profiles = Profile.objects.none()
+
+        # Gộp 2 danh sách
+        combined_profiles = sorted(
+            list(messaged_profiles),
+            key=lambda p: p.last_message_time or timezone.datetime.min,
+            reverse=True
+        ) + list(other_profiles)
+
+        serializer = self.get_serializer(combined_profiles, many=True)
         return Response(serializer.data)
 
 class LoginView(APIView):
@@ -185,7 +222,6 @@ class LoginView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Tên người dùng không tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework.views import exception_handler
 
 class RegisterView(APIView):
     def post(self, request):
@@ -210,9 +246,83 @@ class RegisterView(APIView):
             )
             user.set_password(password)
             user.save()
-
+            Profile.objects.create(user=user)
             return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             print(f"Lỗi khi đăng ký: {e}")  # Xem lỗi ở terminal
             return Response({'error': 'Lỗi máy chủ nội bộ', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
+def search(request):
+    try:
+        query = request.GET.get('q', '')
+        type_filter = request.GET.get('type', '')  
+        genre_filter = request.GET.get('genre', '') 
+
+        if not query:
+            return JsonResponse({'results': []})
+
+        results = []
+        
+        if type_filter == 'song' or not type_filter:  # Nếu lọc theo bài hát hoặc không có bộ lọc
+            songs_query = Track.objects.filter(
+                Q(name__icontains=query) |
+                Q(artist__name__icontains=query) |
+                Q(album__name__icontains=query) |
+                Q(genre__icontains=query)
+            )
+
+            # Áp dụng bộ lọc thể loại nếu có
+            if genre_filter:
+                songs_query = songs_query.filter(genre=genre_filter)
+
+            songs = songs_query.values('id', 'name', 'artist__name', 'album__name', 'genre')[:10]
+
+            results.extend([
+                {
+                    'id': song['id'],
+                    'type': 'song',
+                    'title': song['name'],
+                    'artist': song['artist__name'],
+                    'album': song['album__name'],
+                    'genre': song['genre']
+                }
+                for song in songs
+            ])
+
+        if type_filter == 'artist' or not type_filter: 
+            artists = Artist.objects.filter(
+                Q(name__icontains=query)
+            ).values('id', 'name')[:10]
+
+            results.extend([
+                {
+                    'id': artist['id'],
+                    'type': 'artist',
+                    'name': artist['name']
+                }
+                for artist in artists
+            ])
+
+        if type_filter == 'album' or not type_filter:  # Nếu lọc theo album
+            albums = Album.objects.filter(
+                Q(name__icontains=query) |
+                Q(artist__name__icontains=query)
+            ).values('id', 'name', 'artist__name')[:10]
+
+            results.extend([
+                {
+                    'id': album['id'],
+                    'type': 'album',
+                    'title': album['name'],
+                    'artist': album['artist__name']
+                }
+                for album in albums
+            ])
+
+        return JsonResponse({'results': results})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

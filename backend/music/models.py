@@ -60,7 +60,8 @@ class Track(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
     genre = models.CharField(max_length=50, choices=GENRE_CHOICES, null=True, blank=True)  # Thêm genre vào Track
-
+    def __str__(self):
+        return f"{self.name} - {self.artist.name}"
     class Meta:
         db_table = 'tracks'
 
