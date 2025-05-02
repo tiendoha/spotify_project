@@ -2,7 +2,7 @@ from rest_framework import viewsets, generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 import logging
-from django.db.models import Q, Subquery, OuterRef,Max
+from django.db.models import Q, Subquery, OuterRef, Max
 from django.utils import timezone
 from .models import (
     User, Profile, Artist, Album, Track, Playlist, PlaylistTrack, 
@@ -20,10 +20,8 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
-from django.apps import apps
-from rest_framework.views import exception_handler
-from django.contrib.auth.models import AnonymousUser
-
+import requests
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +118,7 @@ class GetMessages(generics.ListAPIView):
 
 class SendMessages(generics.CreateAPIView):
     serializer_class = MessageSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         logger.info(f"Token từ header: {self.request.headers.get('Authorization')}")
@@ -141,6 +139,82 @@ class SendMessages(generics.CreateAPIView):
             logger.error(f"Error saving message: {str(e)}")
             raise
 
+class ChatWithBot(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        logger.info(f"Chat with bot request: {request.data}")
+        sender_id = request.data.get('sender')
+        content = request.data.get('content')
+        bot_id = 27  # ID của bot
+
+        if not sender_id or not content:
+            return Response(
+                {'error': 'Sender and content are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            sender = User.objects.get(id=sender_id)
+            bot = User.objects.get(id=bot_id)
+
+            # Lưu tin nhắn của người dùng
+            user_message = Message.objects.create(
+                sender=sender,
+                receiver=bot,
+                content=content,
+                sent_at=timezone.now(),
+                is_read=True
+            )
+
+            # Gọi a2a_server để lấy gợi ý từ Gemini
+            a2a_response = requests.post(
+                'http://127.0.0.1:5000/jsonrpc',
+                json={
+                    'jsonrpc': '2.0',
+                    'method': 'recommend_song',
+                    'params': {'input': content, 'user_id': sender_id},
+                    'id': 1
+                }
+            )
+            a2a_data = a2a_response.json()
+
+            if 'result' in a2a_data:
+                bot_response = a2a_data['result']
+            else:
+                bot_response = "Xin lỗi, tôi không thể gợi ý bài hát lúc này."
+
+            # Lưu phản hồi của bot
+            bot_message = Message.objects.create(
+                sender=bot,
+                receiver=sender,
+                content=bot_response,
+                sent_at=timezone.now(),
+                is_read=False
+            )
+
+            # Serialize cả hai tin nhắn
+            user_message_serializer = MessageSerializer(user_message)
+            bot_message_serializer = MessageSerializer(bot_message)
+
+            return Response({
+                'user_message': user_message_serializer.data,
+                'bot_message': bot_message_serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        except User.DoesNotExist:
+            logger.error(f"User or Bot not found: sender_id={sender_id}, bot_id={bot_id}")
+            return Response(
+                {'error': 'User or Bot not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error in chat with bot: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class ProfileDetail(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
@@ -149,7 +223,7 @@ class ProfileDetail(generics.RetrieveUpdateAPIView):
 class SearchUser(generics.ListAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [AllowAny]
-    queryset = Profile.objects.all()  # Thêm dòng này
+    queryset = Profile.objects.all()
 
     def list(self, request, *args, **kwargs):
         username = self.kwargs.get("username", "").strip()
@@ -158,13 +232,21 @@ class SearchUser(generics.ListAPIView):
         # Khởi tạo danh sách kết quả
         combined_profiles = []
 
+        # Luôn thêm bot (ID=27) vào đầu danh sách
+        try:
+            bot_profile = Profile.objects.get(user__id=27)
+            combined_profiles.append(bot_profile)
+        except Profile.DoesNotExist:
+            logger.warning("Bot profile (ID=27) not found")
+
         # Chỉ xử lý logic tìm kiếm nếu người dùng đã đăng nhập
         if current_user.is_authenticated:
             # Tìm tất cả user từng có tin nhắn với current_user
             message_partners = Message.objects.filter(
                 Q(sender=current_user) | Q(receiver=current_user)
             ).exclude(
-                Q(sender=current_user, receiver=current_user)
+                Q(sender=current_user, receiver=current_user) |
+                Q(sender__id=27) | Q(receiver__id=27)  # Loại trừ bot khỏi danh sách partner
             ).values(
                 "sender", "receiver"
             ).annotate(
@@ -191,24 +273,23 @@ class SearchUser(generics.ListAPIView):
                 other_profiles = Profile.objects.filter(
                     Q(user__username__icontains=username) |
                     Q(user__email__icontains=username)
-                ).exclude(user__id__in=partner_ids).exclude(user=current_user)
+                ).exclude(user__id__in=partner_ids).exclude(user=current_user).exclude(user__id=27)
             else:
                 other_profiles = Profile.objects.none()
 
-            # Gộp 2 danh sách
-            combined_profiles = sorted(
+            # Gộp danh sách (bot đã ở đầu)
+            combined_profiles += sorted(
                 list(messaged_profiles),
                 key=lambda p: p.last_message_time or timezone.datetime.min,
                 reverse=True
             ) + list(other_profiles)
         else:
-            # Nếu chưa đăng nhập, chỉ tìm kiếm theo từ khóa (nếu có)
+            # Nếu chưa đăng nhập, chỉ tìm kiếm theo từ khóa (nếu có), không bao gồm bot
             if username:
-                combined_profiles = Profile.objects.filter(
+                combined_profiles += list(Profile.objects.filter(
                     Q(user__username__icontains=username) |
                     Q(user__email__icontains=username)
-                )
-            # Nếu không có username, trả về danh sách rỗng
+                ).exclude(user__id=27))
 
         serializer = self.get_serializer(combined_profiles, many=True)
         return Response(serializer.data)
@@ -236,7 +317,6 @@ class LoginView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Tên người dùng không tồn tại'}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class RegisterView(APIView):
     def post(self, request):
         try:
@@ -256,7 +336,7 @@ class RegisterView(APIView):
                 username=username,
                 email=email,
                 date_joined=timezone.now(),
-                role=1  # đảm bảo trường này có trong model
+                role=1
             )
             user.set_password(password)
             user.save()
@@ -264,10 +344,8 @@ class RegisterView(APIView):
             return Response({'message': 'Đăng ký thành công'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            print(f"Lỗi khi đăng ký: {e}")  # Xem lỗi ở terminal
+            logger.error(f"Lỗi khi đăng ký: {e}")
             return Response({'error': 'Lỗi máy chủ nội bộ', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 
 @api_view(['GET'])
 def search(request):
@@ -281,7 +359,7 @@ def search(request):
 
         results = []
         
-        if type_filter == 'song' or not type_filter:  # Nếu lọc theo bài hát hoặc không có bộ lọc
+        if type_filter == 'song' or not type_filter:
             songs_query = Track.objects.filter(
                 Q(name__icontains=query) |
                 Q(artist__name__icontains=query) |
@@ -289,7 +367,6 @@ def search(request):
                 Q(genre__icontains=query)
             )
 
-            # Áp dụng bộ lọc thể loại nếu có
             if genre_filter:
                 songs_query = songs_query.filter(genre=genre_filter)
 
@@ -321,7 +398,7 @@ def search(request):
                 for artist in artists
             ])
 
-        if type_filter == 'album' or not type_filter:  # Nếu lọc theo album
+        if type_filter == 'album' or not type_filter:
             albums = Album.objects.filter(
                 Q(name__icontains=query) |
                 Q(artist__name__icontains=query)

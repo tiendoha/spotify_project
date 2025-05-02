@@ -10,36 +10,36 @@ const SearchUsers = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Gọi mặc định khi load hoặc searchTerm rỗng
+  // G chiamati mặc định khi load
   useEffect(() => {
     if (!token) return;
     fetchRecentConversations();
-  }, []);
+  }, [token]);
 
   // Nếu searchTerm thay đổi
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredResults([]);
-    } else {
-      handleSearch(searchTerm);
-    }
+    handleSearch(searchTerm);
   }, [searchTerm]);
 
   const fetchRecentConversations = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/search/", {
+      const response = await axios.get("http://127.0.0.1:8000/api/search/", {
         headers: { Authorization: `Token ${token}` },
       });
       setRecentMessages(response.data);
+      if (!searchTerm.trim()) {
+        setFilteredResults(response.data);
+      }
     } catch (err) {
       console.error("Lỗi khi tải danh sách người nhắn tin gần đây", err);
+      setError("Không thể tải danh sách người dùng");
     }
   };
 
   const handleSearch = async (term) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/search/${term}/`,
+        `http://127.0.0.1:8000/api/search/${term}/`,
         {
           headers: { Authorization: `Token ${token}` },
         }
@@ -47,11 +47,11 @@ const SearchUsers = () => {
       setFilteredResults(response.data);
     } catch (err) {
       console.error("Lỗi khi tìm kiếm người dùng", err);
+      setError("Không thể tìm kiếm người dùng");
     }
   };
 
-  const displayedUsers =
-    searchTerm.trim() === "" ? recentMessages : filteredResults;
+  const displayedUsers = filteredResults;
 
   return (
     <div className="search-users-container">
@@ -67,22 +67,29 @@ const SearchUsers = () => {
 
       {/* Danh sách kết quả */}
       <div className="search-results">
-        {displayedUsers.map((profile) => (
-          <div
-            key={profile.user.id}
-            className="user-item"
-            onClick={() => navigate(`/messages/${profile.user.id}`)}
-            style={{ cursor: "pointer", display: "flex", alignItems: "center", marginBottom: "10px" }}
-          >
-            <img
-              src={profile.profile_image || "/default_image.jpg"}
-              alt="Profile"
-              style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
-            />
-            <span>{profile.user.username}</span>
-            <span style={{ marginLeft: "auto" }}>✉️</span>
-          </div>
-        ))}
+        {displayedUsers.length > 0 ? (
+          displayedUsers.map((profile) => (
+            <div
+              key={profile.user.id}
+              className="user-item"
+              onClick={() => navigate(`/messages/${profile.user.id}`)}
+              style={{ cursor: "pointer", display: "flex", alignItems: "center", marginBottom: "10px" }}
+            >
+              <img
+                src={profile.profile_image || "/default_image.jpg"}
+                alt="Profile"
+                style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
+              />
+              <span>
+                {profile.user.username}
+                {profile.user.id === 27 && " (MusicBot)"}
+              </span>
+              <span style={{ marginLeft: "auto" }}>✉️</span>
+            </div>
+          ))
+        ) : (
+          <p>No users found</p>
+        )}
       </div>
     </div>
   );
