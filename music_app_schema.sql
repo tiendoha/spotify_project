@@ -24,7 +24,9 @@ INSERT INTO users (id, username, email, password, date_joined, role, is_active) 
 (23, 'thor_odinson', 'thor@example.com', 'hashed_password23', '2025-03-12 10:00:00', 1, TRUE),
 (24, 'loki_laufeyson', 'loki@example.com', 'hashed_password24', '2025-03-12 11:00:00', 1, TRUE),
 (25, 'gamora_zen', 'gamora@example.com', 'hashed_password25', '2025-03-13 12:00:00', 1, TRUE),
-(26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1, TRUE);
+(26, 'peter_quill', 'peterq@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1, TRUE),
+(27, 'Bot', 'bot@example.com', 'hashed_password26', '2025-03-13 13:00:00', 1, TRUE);
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users) + 1);
 -- Profiles
 INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (1, 1, '1995-05-15', '/profiles/user1.jpg'),
@@ -52,7 +54,9 @@ INSERT INTO profiles (id, user_id, date_of_birth, profile_image) VALUES
 (23, 23, '1992-05-25', '/profiles/thor.png'),
 (24, 24, '1990-06-30', NULL),
 (25, 25, '1996-07-10', '/profiles/gamora.png'),
-(26, 26, '1994-08-15', '/profiles/peterq.png');
+(26, 26, '1994-08-15', '/profiles/peterq.png'),
+(27, 27, '1994-08-15', '/profiles/bot.png');
+SELECT setval('profiles_id_seq', (SELECT MAX(id) FROM profiles) + 1);
 -- Artists
 INSERT INTO artists (id, name, image) VALUES
 (1, 'Taylor Swift', '/artists/taylor.png'),
