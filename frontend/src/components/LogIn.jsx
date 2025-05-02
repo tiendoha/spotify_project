@@ -18,6 +18,7 @@ const Login = () => {
 
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user_id', response.data.user_id); // Lưu user_id
+            localStorage.setItem('role', response.data.role.toString());
             const token = localStorage.getItem('token');
             console.log('Token hiện tại:', token);
             const userRole = response.data.role;

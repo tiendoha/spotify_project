@@ -1,8 +1,8 @@
 from rest_framework import viewsets, generics, status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 import logging
-from django.db.models import Q, Subquery, OuterRef
+from django.db.models import Q, Subquery, OuterRef,Max
 from django.utils import timezone
 from .models import (
     User, Profile, Artist, Album, Track, Playlist, PlaylistTrack, 
@@ -148,53 +148,67 @@ class ProfileDetail(generics.RetrieveUpdateAPIView):
 
 class SearchUser(generics.ListAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    queryset = Profile.objects.all()  # Thêm dòng này
 
     def list(self, request, *args, **kwargs):
         username = self.kwargs.get("username", "").strip()
         current_user = self.request.user
 
-        # Tìm tất cả user từng có tin nhắn với current_user
-        message_partners = Message.objects.filter(
-            Q(sender=current_user) | Q(receiver=current_user)
-        ).exclude(
-            Q(sender=current_user, receiver=current_user)
-        ).values(
-            "sender", "receiver"
-        ).annotate(
-            last_message_time=Max("sent_at")
-        )
+        # Khởi tạo danh sách kết quả
+        combined_profiles = []
 
-        partner_ids = set()
-        partner_time_map = {}
+        # Chỉ xử lý logic tìm kiếm nếu người dùng đã đăng nhập
+        if current_user.is_authenticated:
+            # Tìm tất cả user từng có tin nhắn với current_user
+            message_partners = Message.objects.filter(
+                Q(sender=current_user) | Q(receiver=current_user)
+            ).exclude(
+                Q(sender=current_user, receiver=current_user)
+            ).values(
+                "sender", "receiver"
+            ).annotate(
+                last_message_time=Max("sent_at")
+            )
 
-        for msg in message_partners:
-            sender = msg["sender"]
-            receiver = msg["receiver"]
-            partner_id = receiver if sender == current_user.id else sender
-            partner_ids.add(partner_id)
-            partner_time_map[partner_id] = msg["last_message_time"]
+            partner_ids = set()
+            partner_time_map = {}
 
-        # Người đã nhắn tin → lấy profile và gắn thêm thời gian gửi gần nhất
-        messaged_profiles = Profile.objects.filter(user__id__in=partner_ids)
-        for profile in messaged_profiles:
-            profile.last_message_time = partner_time_map.get(profile.user.id)
+            for msg in message_partners:
+                sender = msg["sender"]
+                receiver = msg["receiver"]
+                partner_id = receiver if sender == current_user.id else sender
+                partner_ids.add(partner_id)
+                partner_time_map[partner_id] = msg["last_message_time"]
 
-        # Người chưa nhắn tin nhưng trùng từ khóa
-        if username:
-            other_profiles = Profile.objects.filter(
-                Q(user__username__icontains=username) |
-                Q(user__email__icontains=username)
-            ).exclude(user__id__in=partner_ids).exclude(user=current_user)
+            # Người đã nhắn tin → lấy profile và gắn thêm thời gian gửi gần nhất
+            messaged_profiles = Profile.objects.filter(user__id__in=partner_ids)
+            for profile in messaged_profiles:
+                profile.last_message_time = partner_time_map.get(profile.user.id)
+
+            # Người chưa nhắn tin nhưng trùng từ khóa
+            if username:
+                other_profiles = Profile.objects.filter(
+                    Q(user__username__icontains=username) |
+                    Q(user__email__icontains=username)
+                ).exclude(user__id__in=partner_ids).exclude(user=current_user)
+            else:
+                other_profiles = Profile.objects.none()
+
+            # Gộp 2 danh sách
+            combined_profiles = sorted(
+                list(messaged_profiles),
+                key=lambda p: p.last_message_time or timezone.datetime.min,
+                reverse=True
+            ) + list(other_profiles)
         else:
-            other_profiles = Profile.objects.none()
-
-        # Gộp 2 danh sách
-        combined_profiles = sorted(
-            list(messaged_profiles),
-            key=lambda p: p.last_message_time or timezone.datetime.min,
-            reverse=True
-        ) + list(other_profiles)
+            # Nếu chưa đăng nhập, chỉ tìm kiếm theo từ khóa (nếu có)
+            if username:
+                combined_profiles = Profile.objects.filter(
+                    Q(user__username__icontains=username) |
+                    Q(user__email__icontains=username)
+                )
+            # Nếu không có username, trả về danh sách rỗng
 
         serializer = self.get_serializer(combined_profiles, many=True)
         return Response(serializer.data)
