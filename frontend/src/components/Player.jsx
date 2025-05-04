@@ -10,7 +10,7 @@ Modal.setAppElement("#root");
 
 const Player = () => {
     const { currentTrack, getArtistName, findMVbyId, musicVideo } = useContext(TrackContext);
-    const { audioRef, pause, isPlaying, play } = useContext(PlaybackContext);
+    const { audioRef, pause, isPlaying, play, playNext, playPrevious } = useContext(PlaybackContext);
     const [volume, setVolume] = useState(50);
     const [isMuted, setIsMuted] = useState(false);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
@@ -18,7 +18,42 @@ const Player = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isMvModalOpen, setIsMvModalOpen] = useState(false);
     const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+    const [playlists, setPlaylists] = useState([]);
     const videoRef = useRef(null);
+
+    // Lấy danh sách playlist của user hiện tại khi component mount
+    useEffect(() => {
+        const fetchPlaylists = async () => {
+            try {
+                const userId = parseInt(localStorage.getItem("user_id"));
+                const token = localStorage.getItem("token");
+                if (!userId || !token) {
+                    throw new Error("User ID or token not found in localStorage");
+                }
+
+                const response = await fetch("http://127.0.0.1:8000/api/playlists/", {
+                    headers: {
+                        "Authorization": `Token ${token}`,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch playlists: ${response.statusText}`);
+                }
+                const data = await response.json();
+                // Lọc playlist theo user_id
+                const userPlaylists = data.filter(playlist => playlist.user === userId);
+                setPlaylists(userPlaylists);
+            } catch (error) {
+                console.error("Failed to fetch playlists:", error);
+                toast.error("Failed to load playlists!", {
+                    position: "top-left",
+                    autoClose: 3000,
+                    icon: "🎵",
+                });
+            }
+        };
+        fetchPlaylists();
+    }, []);
 
     // Xử lý Picture-in-Picture
     useEffect(() => {
@@ -161,6 +196,75 @@ const Player = () => {
         }
     };
 
+    const handleAddToPlaylist = async (playlistId) => {
+        if (!currentTrack) {
+            toast.error("No track selected to add to playlist!", {
+                position: "top-left",
+                autoClose: 3000,
+                icon: "🎵",
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                toast.error("Authentication token not found!", {
+                    position: "top-left",
+                    autoClose: 3000,
+                    icon: "🎵",
+                });
+                return;
+            }
+
+            const response = await fetch(`http://127.0.0.1:8000/api/playlists/${playlistId}/add_track/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`,
+                },
+                body: JSON.stringify({ track_id: currentTrack.id }),
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Failed to add track to playlist";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                    // Handle duplicate track case without throwing
+                    if (errorMessage === "Track is already in the playlist") {
+                        toast.error(errorMessage, {
+                            position: "top-left",
+                            autoClose: 3000,
+                            icon: "🎵",
+                        });
+                        setShowPlaylistPopup(false);
+                        return;
+                    }
+                } catch (jsonError) {
+                    console.error("Non-JSON response:", await response.text());
+                }
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            toast.success("Track added to playlist successfully!", {
+                position: "top-left",
+                autoClose: 3000,
+                icon: "🎵",
+            });
+        } catch (error) {
+            console.error("Failed to add track to playlist:", error);
+            toast.error(error.message || "Failed to add track to playlist!", {
+                position: "top-left",
+                autoClose: 3000,
+                icon: "🎵",
+            });
+        } finally {
+            setShowPlaylistPopup(false);
+        }
+    };
+
     const handleOpenMvModal = () => {
         if (!currentTrack) {
             toast.error("No track selected to view music video!", {
@@ -264,7 +368,7 @@ const Player = () => {
                 </div>
 
                 <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] mx-auto">
-                    <PlayerControls />
+                    <PlayerControls playNext={playNext} playPrevious={playPrevious} />
                     <PlayerProgress currentTrack={currentTrack} />
                 </div>
 
@@ -310,12 +414,12 @@ const Player = () => {
                         </span>
                     </div>
 
-                    <div className="relative group">
+                    {/* <div className="relative group">
                         <i className="fas fa-list w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"></i>
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                             Queue
                         </span>
-                    </div>
+                    </div> */}
 
                     <div className="relative group">
                         <i
@@ -348,13 +452,23 @@ const Player = () => {
                     </div>
 
                     {showPlaylistPopup && (
-                        <div className="absolute bottom-full right-0 mb-2 bg-gray-800 p-4 rounded shadow-lg w-48">
+                        <div className="absolute bottom-full right-0 mb-2 bg-gray-800 p-4 rounded shadow-lg w-48 z-20">
                             <h3 className="text-white text-sm font-semibold mb-2">Add to Playlist</h3>
-                            <ul className="text-gray-400 text-sm">
-                                <li className="py-1 hover:text-white cursor-pointer">Playlist 1</li>
-                                <li className="py-1 hover:text-white cursor-pointer">Playlist 2</li>
-                                <li className="py-1 hover:text-white cursor-pointer">New Playlist</li>
-                            </ul>
+                            {playlists.length > 0 ? (
+                                <ul className="text-gray-400 text-sm max-h-40 overflow-y-auto">
+                                    {playlists.map((playlist) => (
+                                        <li
+                                            key={playlist.id}
+                                            className="py-1 hover:text-white cursor-pointer"
+                                            onClick={() => handleAddToPlaylist(playlist.id)}
+                                        >
+                                            {playlist.name}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-gray-400 text-sm">No playlists available</p>
+                            )}
                             <button
                                 onClick={() => setShowPlaylistPopup(false)}
                                 className="mt-2 text-gray-400 hover:text-white text-sm"

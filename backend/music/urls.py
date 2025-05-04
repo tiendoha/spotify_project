@@ -6,7 +6,7 @@ from .views import (
     MessageViewSet, SharedListeningInvitationViewSet, MusicVideoViewSet,
     UserAlbumViewSet, UserAlbumTrackViewSet, MyInbox, GetMessages,
     SendMessages, ProfileDetail, SearchUser, LoginView, RegisterView,
-    ChatWithBot
+    ChatWithBot,AddTrackToPlaylistView
 )
 from . import views
 
@@ -37,4 +37,5 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('register/', RegisterView.as_view(), name='register'),
     path('search/', views.search, name='search'),
+    path('playlists/<int:playlist_id>/add_track/', AddTrackToPlaylistView.as_view(), name='add_track_to_playlist'),
 ]

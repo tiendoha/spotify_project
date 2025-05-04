@@ -4,6 +4,7 @@ from rest_framework.response import Response
 import logging
 from django.db.models import Q, Subquery, OuterRef, Max
 from django.utils import timezone
+from django.db import IntegrityError
 from .models import (
     User, Profile, Artist, Album, Track, Playlist, PlaylistTrack, 
     Follower, Like, Message, SharedListeningInvitation, MusicVideo, 
@@ -14,18 +15,20 @@ from .serializers import (
     TrackSerializer, PlaylistSerializer, PlaylistTrackSerializer, 
     FollowerSerializer, LikeSerializer, MessageSerializer,
     SharedListeningInvitationSerializer, MusicVideoSerializer, 
-    UserAlbumSerializer, UserAlbumTrackSerializer
+    UserAlbumSerializer, UserAlbumTrackSerializer, AddTrackToPlaylistSerializer
 )
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
 import requests
 import json
+import uuid
 
 logger = logging.getLogger(__name__)
 
-# Các ViewSet hiện có
+# Các ViewSet hiện có (không thay đổi)
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -219,6 +222,90 @@ class ProfileDetail(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
     permission_classes = [AllowAny]
+
+class AddTrackToPlaylistView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, playlist_id):
+        try:
+            # Kiểm tra dữ liệu đầu vào
+            serializer = AddTrackToPlaylistSerializer(data=request.data)
+            if not serializer.is_valid():
+                logger.error(f"Invalid input data: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Lấy playlist
+            try:
+                playlist = Playlist.objects.get(id=playlist_id)
+            except Playlist.DoesNotExist:
+                logger.error(f"Playlist with id {playlist_id} not found")
+                return Response(
+                    {"error": "Playlist not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Kiểm tra quyền sở hữu
+            if playlist.user != request.user:
+                logger.error(f"User {request.user.id} does not own playlist {playlist_id}")
+                return Response(
+                    {"error": "You do not have permission to modify this playlist"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Lấy track
+            track_id = serializer.validated_data['track_id']
+            try:
+                track = Track.objects.get(id=track_id)
+            except Track.DoesNotExist:
+                logger.error(f"Track with id {track_id} not found")
+                return Response(
+                    {"error": "Track not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Kiểm tra track đã có trong playlist chưa
+            if PlaylistTrack.objects.filter(playlist=playlist, track=track).exists():
+                logger.warning(f"Track {track_id} already in playlist {playlist_id}")
+                return Response(
+                    {"error": "Track is already in the playlist"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Tính track_order (lấy max track_order hiện tại + 1, hoặc 1 nếu playlist rỗng)
+            max_order = PlaylistTrack.objects.filter(playlist=playlist).aggregate(
+                Max('track_order')
+            )['track_order__max'] or 0
+            track_order = max_order + 1
+
+            # Thêm track vào playlist thông qua PlaylistTrack
+            try:
+                PlaylistTrack.objects.create(
+                    playlist=playlist,
+                    track=track,
+                    track_order=track_order
+                )
+            except IntegrityError as e:
+                logger.error(f"IntegrityError adding track {track_id} to playlist {playlist_id}: {str(e)}")
+                return Response(
+                    {"error": "Failed to add track due to a database constraint violation"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            # Tạo snapshot_id
+            snapshot_id = str(uuid.uuid4())
+            logger.info(f"Track {track_id} added to playlist {playlist_id} with snapshot_id {snapshot_id}")
+            return Response(
+                {"snapshot_id": snapshot_id},
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            logger.exception(f"Unexpected error in AddTrackToPlaylistView: {str(e)}")
+            return Response(
+                {"error": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class SearchUser(generics.ListAPIView):
     serializer_class = ProfileSerializer

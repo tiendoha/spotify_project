@@ -1,15 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets';
+import { TrackContext } from '../context/PlayerContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { playTrackById } = useContext(TrackContext);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
   const [filterType, setFilterType] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
+  const [profile, setProfile] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // Fetch profile information from API based on user_id
+  useEffect(() => {
+    const userId = localStorage.getItem('user_id');
+    const token = localStorage.getItem('token');
+    if (userId && token) {
+      fetch(`http://localhost:8000/api/profiles/${userId}/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => response.json())
+        .then(data => setProfile(data))
+        .catch(err => console.error('Error fetching profile:', err));
+    }
+  }, []);
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('role');
+    localStorage.removeItem('username');
+    setProfile(null);
+    window.location.reload();
+  };
 
   const handleSearch = async (query, type = '', genre = '') => {
     setSearchQuery(query);
@@ -20,7 +52,7 @@ const Navbar = () => {
         let url = `http://localhost:8000/api/search/?q=${encodeURIComponent(query)}`;
         if (type) url += `&type=${type}`;
         if (genre) url += `&genre=${genre}`;
-        
+
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -38,7 +70,7 @@ const Navbar = () => {
         setSearchResults(data.results || []);
       } catch (error) {
         console.error('Error fetching search results:', error);
-        setError(`Không thể tải kết quả tìm kiếm: ${error.message}`);
+        setError(`Unable to load search results: ${error.message}`);
         setSearchResults([]);
       }
     } else {
@@ -60,172 +92,319 @@ const Navbar = () => {
     }
   };
 
+  // Generate avatar from the first letter of username if no profile_image
+  const getInitialAvatar = (username) => {
+    if (!username) return 'https://via.placeholder.com/30';
+    const initial = username.charAt(0).toUpperCase();
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Crect width='30' height='30' fill='%232D2D2D'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='14' font-family='Arial'%3E${initial}%3C/text%3E%3C/svg%3E`;
+  };
+
+  // Check login status and play track
+  const handlePlayOrPrompt = (trackId) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      playTrackById(trackId);
+    } else {
+      setShowLoginPrompt(true);
+    }
+  };
+
   return (
     <>
       <div className="w-full flex justify-between items-center font-semibold relative">
-        {/* Nút điều hướng bên trái */}
+        {/* Navigation buttons */}
         <div className="flex items-center gap-2">
           <img
             onClick={() => navigate(-1)}
-            className="w-8 bg-black p-2 rounded-2xl cursor-pointer"
+            className="w-8 bg-gradient-to-r from-gray-800 to-gray-900 p-2 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-sm"
             src={assets.arrow_left}
             alt="Back"
           />
           <img
             onClick={() => navigate(1)}
-            className="w-8 bg-black p-2 rounded-2xl cursor-pointer"
+            className="w-8 bg-gradient-to-r from-gray-800 to-gray-900 p-2 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-sm"
             src={assets.arrow_right}
             alt="Forward"
           />
         </div>
 
-        {/* Thanh tìm kiếm và các nút bên phải */}
+        {/* Search bar and other buttons */}
         <div className="flex items-center gap-4">
-          {/* Thanh tìm kiếm */}
+          {/* Search bar */}
           <div className="relative flex items-center">
-            <img
-              className="w-6 cursor-pointer mr-2"
-              src={assets.search_icon}
-              alt="Search"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-            />
-            {isSearchOpen && (
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value, filterType, filterGenre)}
-                  placeholder="Tìm bài hát, ca sĩ, album..."
-                  className="w-64 p-2 rounded-2xl bg-[#2a2a2a] text-white border-none focus:outline-none placeholder-gray-400 text-sm"
-                />
-                {(searchResults.length > 0 || error) && (
-                  <div className="absolute top-12 right-0 w-80 max-h-96 bg-[#1a1a1a] rounded-lg shadow-lg z-10 flex flex-col">
-                    {/* Bộ lọc loại nội dung */}
-                    <div className="flex gap-2 p-3 border-b border-gray-700">
-                      <button
-                        onClick={() => handleFilterTypeChange('')}
-                        className={`px-3 py-1 rounded-2xl text-sm ${filterType === '' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                      >
-                        All
-                      </button>
-                      <button
-                        onClick={() => handleFilterTypeChange('song')}
-                        className={`px-3 py-1 rounded-2xl text-sm ${filterType === 'song' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                      >
-                        Songs
-                      </button>
-                      <button
-                        onClick={() => handleFilterTypeChange('artist')}
-                        className={`px-3 py-1 rounded-2xl text-sm ${filterType === 'artist' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                      >
-                        Artists
-                      </button>
-                      <button
-                        onClick={() => handleFilterTypeChange('album')}
-                        className={`px-3 py-1 rounded-2xl text-sm ${filterType === 'album' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                      >
-                        Albums
-                      </button>
-                    </div>
-                    {/* Bộ lọc thể loại (chỉ hiển thị khi chọn Songs) */}
-                    {filterType === 'song' && (
-                      <div className="flex gap-2 p-3 border-b border-gray-700">
-                        <button
-                          onClick={() => handleFilterGenreChange('')}
-                          className={`px-3 py-1 rounded-2xl text-sm ${filterGenre === '' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                        >
-                          All Genres
-                        </button>
-                        <button
-                          onClick={() => handleFilterGenreChange('pop')}
-                          className={`px-3 py-1 rounded-2xl text-sm ${filterGenre === 'pop' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                        >
-                          Pop
-                        </button>
-                        <button
-                          onClick={() => handleFilterGenreChange('rock')}
-                          className={`px-3 py-1 rounded-2xl text-sm ${filterGenre === 'rock' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                        >
-                          Rock
-                        </button>
-                        <button
-                          onClick={() => handleFilterGenreChange('jazz')}
-                          className={`px-3 py-1 rounded-2xl text-sm ${filterGenre === 'jazz' ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'}`}
-                        >
-                          Jazz
-                        </button>
-                      </div>
-                    )}
-                    {/* Hiển thị lỗi nếu có */}
-                    {error && (
-                      <p className="text-red-500 text-sm p-3">{error}</p>
-                    )}
-                    {/* Kết quả tìm kiếm */}
-                    <div className="max-h-64 overflow-y-auto">
-                      {searchResults.map((result) => (
-                        <div
-                          key={result.id}
-                          className="p-3 hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-3"
-                          onClick={() => {
-                            navigate(`/${result.type}/${result.id}`);
-                            setIsSearchOpen(false);
-                            setSearchQuery('');
-                            setSearchResults([]);
-                          }}
-                        >
-                          <div>
-                            {result.type === 'song' && (
-                              <>
-                                <p className="font-bold text-white text-sm">{result.title}</p>
-                                <p className="text-xs text-gray-400">
-                                  {result.artist} • {result.album || 'Single'}
-                                </p>
-                                {result.genre && (
-                                  <p className="text-xs text-gray-500">{result.genre}</p>
-                                )}
-                              </>
-                            )}
-                            {result.type === 'artist' && (
-                              <p className="font-bold text-white text-sm">{result.name}</p>
-                            )}
-                            {result.type === 'album' && (
-                              <>
-                                <p className="font-bold text-white text-sm">{result.title}</p>
-                                <p className="text-xs text-gray-400">{result.artist}</p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+            {/* Search icon and input */}
+            <div className="relative flex items-center">
+              <img
+                className="w-5 h-5 absolute left-3 cursor-pointer text-gray-400"
+                src={assets.search_icon}
+                alt="Search"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value, filterType, filterGenre)}
+                onFocus={() => setIsSearchOpen(true)}
+                placeholder="Search for songs, artists, albums..."
+                className={`pl-10 pr-4 py-2 rounded-full text-sm text-white placeholder-gray-400 bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 focus:border-green-500 focus:outline-none transition-all duration-300 shadow-sm ${isSearchOpen ? 'w-64 opacity-100' : 'w-32 opacity-50'
+                  } md:w-80`}
+              />
+            </div>
+
+            {/* Search results dropdown */}
+            {isSearchOpen && (searchResults.length > 0 || error || (searchQuery.length > 0 && searchResults.length === 0)) && (
+              <div className="absolute top-12 right-0 w-64 md:w-80 max-h-96 bg-gray-900 rounded-xl shadow-2xl z-10 flex flex-col transform transition-all duration-300 animate-slideDown">
+                {/* Content type filters */}
+                <div className="flex gap-2 p-2 border-b border-gray-800">
+                  <button
+                    onClick={() => handleFilterTypeChange('')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterType === '' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                  >
+                    <span className="text-teal-400 text-sm">🌐</span> All
+                  </button>
+                  <button
+                    onClick={() => handleFilterTypeChange('song')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterType === 'song' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                  >
+                    <span className="text-teal-400 text-sm">♪</span> Songs
+                  </button>
+                  <button
+                    onClick={() => handleFilterTypeChange('artist')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterType === 'artist' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                  >
+                    <span className="text-teal-400 text-sm">👤</span> Artists
+                  </button>
+                  <button
+                    onClick={() => handleFilterTypeChange('album')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterType === 'album' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                  >
+                    <span className="text-teal-400 text-sm">💿</span> Albums
+                  </button>
+                </div>
+                {/* Genre filters (only for Songs) */}
+                {filterType === 'song' && (
+                  <div className="flex gap-2 p-2 border-b border-gray-800">
+                    <button
+                      onClick={() => handleFilterGenreChange('')}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterGenre === '' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                    >
+                      All Genres
+                    </button>
+                    <button
+                      onClick={() => handleFilterGenreChange('pop')}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterGenre === 'pop' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                    >
+                      Pop
+                    </button>
+                    <button
+                      onClick={() => handleFilterGenreChange('rock')}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterGenre === 'rock' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                    >
+                      Rock
+                    </button>
+                    <button
+                      onClick={() => handleFilterGenreChange('jazz')}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterGenre === 'jazz' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                    >
+                      Jazz
+                    </button>
                   </div>
                 )}
+                {/* Display error if any */}
+                {error && (
+                  <p className="text-red-400 text-xs p-2">{error}</p>
+                )}
+                {/* Display when no results */}
+                {!error && searchQuery.length > 0 && searchResults.length === 0 && (
+                  <p className="text-gray-400 text-xs p-2">No results</p>
+                )}
+                {/* Search results */}
+                <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                  {searchResults.map((result, index) => (
+                    <div
+                      key={`${result.id}-${index}`}
+                      className="p-2 hover:bg-gray-800 cursor-pointer flex items-center gap-2 transition-colors duration-200"
+                      onClick={() => {
+                        if (result.type === 'song') {
+                          handlePlayOrPrompt(result.id); // Check login before playing
+                        } else {
+                          navigate(`/${result.type}/${result.id}`); // Navigate for artists and albums
+                        }
+                        setIsSearchOpen(false);
+                        setSearchQuery('');
+                        setSearchResults([]);
+                      }}
+                    >
+                      {/* Icon representing type */}
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        {result.type === 'song' && (
+                          <span className="text-teal-400 text-base">♪</span>
+                          // If you have icons in assets, you can replace with:
+                          // <img src={assets.song_icon} alt="Song" className="w-5 h-5" />
+                        )}
+                        {result.type === 'artist' && (
+                          <span className="text-teal-400 text-base">👤</span>
+                          // If you have icons: <img src={assets.artist_icon} alt="Artist" className="w-5 h-5" />
+                        )}
+                        {result.type === 'album' && (
+                          <span className="text-teal-400 text-base">💿</span>
+                          // If you have icons: <img src={assets.album_icon} alt="Album" className="w-5 h-5" />
+                        )}
+                      </div>
+                      {/* Result content */}
+                      <div>
+                        {result.type === 'song' && (
+                          <>
+                            <p className="font-bold text-white text-sm">{result.title || 'Unknown Song'}</p>
+                            <p className="text-xs text-gray-400">
+                              {result.artist || 'Unknown Artist'} • {result.album || 'Single'}
+                            </p>
+                            {result.genre && (
+                              <p className="text-xs text-gray-500">{result.genre}</p>
+                            )}
+                          </>
+                        )}
+                        {result.type === 'artist' && (
+                          <p className="font-bold text-white text-sm">{result.name || 'Unknown Artist'}</p>
+                        )}
+                        {result.type === 'album' && (
+                          <>
+                            <p className="font-bold text-white text-sm">{result.title || 'Unknown Album'}</p>
+                            <p className="text-xs text-gray-400">{result.artist || 'Unknown Artist'}</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Các nút khác */}
-          <p className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer">
+          {/* Other buttons */}
+          <p className="bg-gradient-to-r from-gray-200 to-gray-300 text-black text-sm px-4 py-1 rounded-full hidden md:block cursor-pointer hover:from-gray-300 hover:to-gray-400 transition-all duration-200 shadow-sm">
             Explore Premium
           </p>
-          <p className="bg-black py-1 px-3 rounded-2xl text-[15px] cursor-pointer">
+          <p className="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-sm px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm">
             Install App
           </p>
-          <p
-            onClick={() => navigate('/login')}
-            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
-          >
-            Login
-          </p>
+          {profile ? (
+            <div className="relative">
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <img
+                  src={profile.profile_image ? profile.profile_image : getInitialAvatar(profile.user.username)}
+                  alt="Avatar"
+                  className="w-8 h-8 rounded-full border-2 border-gray-300"
+                />
+                <p className="text-sm text-white">{profile.user.username}</p>
+              </div>
+              {isDropdownOpen && (
+                <div className="absolute top-12 right-0 w-40 bg-gray-800 rounded-md shadow-lg z-10">
+                  <button
+                    onClick={() => navigate('/edit-profile')}
+                    className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded-t-md"
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded-b-md"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p
+              onClick={() => navigate('/login')}
+              className="bg-gradient-to-r from-gray-200 to-gray-300 text-black text-sm px-4 py-1 rounded-full hidden md:block cursor-pointer hover:from-gray-300 hover:to-gray-400 transition-all duration-200 shadow-sm"
+            >
+              Login
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Tabs bên dưới */}
+      {/* Login prompt */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-white">
+            <p>You need to log in to play music. Would you like to log in?</p>
+            <div className="mt-4 flex justify-end gap-4">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs below */}
       <div className="flex items-center gap-2 mt-4">
-        <p className="bg-white text-black px-4 py-1 rounded-2xl cursor-pointer">All</p>
-        <p className="bg-black px-4 py-1 rounded-2xl cursor-pointer">Music</p>
-        <p className="bg-black px-4 py-1 rounded-2xl cursor-pointer">Podcasts</p>
+        <p className="bg-gradient-to-r from-gray-200 to-gray-300 text-black px-4 py-1 rounded-full cursor-pointer hover:from-gray-300 hover:to-gray-400 transition-all duration-200 shadow-sm">
+          All
+        </p>
+        <p className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm">
+          Music
+        </p>
+        <p className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm">
+          Podcasts
+        </p>
       </div>
+
+      {/* Custom CSS for scrollbar and animation */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #2a2a2a;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #4a4a4a;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #6a6a6a;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out forwards;
+        }
+      `}</style>
     </>
   );
 };

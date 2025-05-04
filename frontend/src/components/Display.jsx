@@ -6,6 +6,7 @@ import Messages from "./Messages";
 import axios from "axios";
 import ColorThief from "colorthief";
 import DisplayArtist from "./DisplayArtist"
+import DisplayPlaylist from "./DisplayPlaylist";
 
 const Display = () => {
   const [album, setAlbum] = useState(null);
@@ -53,6 +54,7 @@ const Display = () => {
         <Route path="/" element={<DisplayHome />} />
         <Route path="/home" element={<DisplayHome />} />
         <Route path="/album/:id" element={<DisplayAlbum />} />
+        <Route path="/playlist/:id" element={<DisplayPlaylist />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/artist/:id" element={<DisplayArtist />} />
       </Routes>

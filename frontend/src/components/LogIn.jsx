@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios'
 
@@ -17,14 +17,15 @@ const Login = () => {
             });
 
             localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user_id', response.data.user_id); // Lưu user_id
+            localStorage.setItem('user_id', response.data.user_id);
             localStorage.setItem('role', response.data.role.toString());
+            localStorage.setItem('username', username); // Lưu username vào localStorage
             const token = localStorage.getItem('token');
             console.log('Token hiện tại:', token);
             const userRole = response.data.role;
 
             setMessage('Dang nhap thanh cong');
-            
+
             if (userRole === 'admin') {
                 navigate('/admin');
             } else {
@@ -35,7 +36,7 @@ const Login = () => {
             console.log(error.response.data); // In lỗi từ server
         }
     };
-    
+
     return (
         <div className="auth-container">
             <h1>Spotify</h1>
@@ -43,7 +44,7 @@ const Login = () => {
                 <h2>Đăng nhập</h2>
                 {message && <p className={message.includes('thành công') ? 'success' : 'error'}>{message}</p>}
                 <div className="form-group">
-                    <input 
+                    <input
                         type="text"
                         placeholder="Tên đăng nhập"
                         value={username}
@@ -52,7 +53,7 @@ const Login = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <input 
+                    <input
                         type="password"
                         placeholder="Mật khẩu"
                         value={password}

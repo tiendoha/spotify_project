@@ -20,19 +20,19 @@ export const PlayerContextProvider = ({ children }) => {
     const [isLooping, setIsLooping] = useState(false);
     const [isShuffling, setIsShuffling] = useState(false);
     const [musicVideo, setMusicVideo] = useState(null);
+    const [playNext, setPlayNext] = useState(() => () => { });
+    const [playPrevious, setPlayPrevious] = useState(() => () => { });
+    const [queue, setQueue] = useState([]);
 
     useEffect(() => {
         const fetchTracks = async () => {
             try {
-                // Fetch tracks
                 const tracksResponse = await axios.get("http://127.0.0.1:8000/api/tracks/");
                 setTracks(tracksResponse.data);
 
-                // Fetch artists
                 const artistsResponse = await axios.get("http://127.0.0.1:8000/api/artists/");
                 setArtists(artistsResponse.data);
 
-                // Fetch t?t c? MV
                 const mvResponse = await axios.get("http://127.0.0.1:8000/api/music-videos/");
                 const mvs = mvResponse.data;
                 const formattedMVs = Array.isArray(mvs) ? mvs.map(mv => ({
@@ -91,6 +91,15 @@ export const PlayerContextProvider = ({ children }) => {
     const playTrackById = useCallback((id) => {
         const track = tracks.find(t => t.id === id);
         if (track && audioRef.current) {
+            // Kiểm tra nếu track không nằm trong queue hiện tại, reset queue
+            if (queue.length > 0 && !queue.find(t => t.id === id)) {
+                setQueue([]);
+                toast.info("Playing from global tracks, queue reset!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+            }
+
             setCurrentTrack(track);
             audioRef.current.src = `http://127.0.0.1:8000/media${track.file}`;
             audioRef.current.load();
@@ -110,7 +119,7 @@ export const PlayerContextProvider = ({ children }) => {
                 autoClose: 3000,
             });
         }
-    }, [tracks]);
+    }, [tracks, queue]);
 
     const previous = useCallback(() => {
         const currentIndex = tracks.findIndex(t => t.id === currentTrack?.id);
@@ -133,32 +142,100 @@ export const PlayerContextProvider = ({ children }) => {
     }, [tracks, currentTrack]);
 
     const next = useCallback(() => {
-        const currentIndex = tracks.findIndex(t => t.id === currentTrack?.id);
-        let nextTrack;
-        if (isShuffling) {
-            const randomIndex = Math.floor(Math.random() * tracks.length);
-            nextTrack = tracks[randomIndex];
-        } else if (currentIndex < tracks.length - 1) {
-            nextTrack = tracks[currentIndex + 1];
-        } else {
-            nextTrack = tracks[0];
-        }
-        if (nextTrack && audioRef.current) {
-            setCurrentTrack(nextTrack);
-            audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
-            audioRef.current.load();
-            audioRef.current.play()
-                .then(() => setIsPlaying(true))
-                .catch((error) => {
-                    console.error("Error playing next track:", error);
-                    setIsPlaying(false);
-                    toast.error("Failed to play the next track!", {
+        if (queue && queue.length > 0) {
+            const currentIndex = queue.findIndex(t => t.id === currentTrack?.id);
+            let nextTrack;
+
+            if (isShuffling) {
+                const availableTracks = queue.filter(t => t.id !== currentTrack?.id);
+                if (availableTracks.length === 0) {
+                    toast.info("Only one track in queue, cannot shuffle!", {
                         position: "bottom-right",
                         autoClose: 3000,
                     });
+                    return;
+                }
+                const randomIndex = Math.floor(Math.random() * availableTracks.length);
+                nextTrack = availableTracks[randomIndex];
+            } else if (currentIndex >= 0 && currentIndex < queue.length - 1) {
+                nextTrack = queue[currentIndex + 1];
+            } else {
+                nextTrack = queue[0];
+            }
+
+            if (nextTrack && audioRef.current) {
+                setCurrentTrack(nextTrack);
+                audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
+                audioRef.current.load();
+                audioRef.current.play()
+                    .then(() => setIsPlaying(true))
+                    .catch((error) => {
+                        console.error("Error playing next track from queue:", error);
+                        setIsPlaying(false);
+                        toast.error("Failed to play the next track!", {
+                            position: "bottom-right",
+                            autoClose: 3000,
+                        });
+                    });
+            }
+        } else {
+            if (!tracks || tracks.length === 0) {
+                toast.error("No tracks available to play!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
                 });
+                return;
+            }
+
+            let currentIndex = -1;
+            if (currentTrack) {
+                currentIndex = tracks.findIndex(t => t.id === currentTrack.id);
+            }
+
+            let nextTrack;
+            if (isShuffling) {
+                const availableTracks = tracks.filter(t => t.id !== currentTrack?.id);
+                if (availableTracks.length === 0) {
+                    toast.info("Only one track available, cannot shuffle!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                    return;
+                }
+                const randomIndex = Math.floor(Math.random() * availableTracks.length);
+                nextTrack = availableTracks[randomIndex];
+            } else {
+                if (currentIndex === -1) {
+                    nextTrack = tracks[0];
+                } else if (currentIndex < tracks.length - 1) {
+                    nextTrack = tracks[currentIndex + 1];
+                } else {
+                    nextTrack = tracks[0];
+                }
+            }
+
+            if (nextTrack && audioRef.current) {
+                setCurrentTrack(nextTrack);
+                audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
+                audioRef.current.load();
+                audioRef.current.play()
+                    .then(() => setIsPlaying(true))
+                    .catch((error) => {
+                        console.error("Error playing next track from global tracks:", error);
+                        setIsPlaying(false);
+                        toast.error("Failed to play the next track!", {
+                            position: "bottom-right",
+                            autoClose: 3000,
+                        });
+                    });
+            } else {
+                toast.error("No next track available!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+            }
         }
-    }, [tracks, currentTrack, isShuffling]);
+    }, [tracks, currentTrack, isShuffling, queue]);
 
     useEffect(() => {
         const handleEnded = () => {
@@ -190,6 +267,10 @@ export const PlayerContextProvider = ({ children }) => {
         setIsShuffling(prev => !prev);
     }, []);
 
+    const setContextQueue = useCallback((newQueue) => {
+        setQueue(newQueue || []);
+    }, []);
+
     const trackContextValue = useMemo(() => ({
         tracks,
         currentTrack,
@@ -209,8 +290,14 @@ export const PlayerContextProvider = ({ children }) => {
         isLooping,
         toggleLoop,
         isShuffling,
-        toggleShuffle
-    }), [audioRef, isPlaying, play, pause, previous, next, isLooping, toggleLoop, isShuffling, toggleShuffle]);
+        toggleShuffle,
+        playNext,
+        playPrevious,
+        setPlayNext,
+        setPlayPrevious,
+        queue,
+        setContextQueue,
+    }), [audioRef, isPlaying, play, pause, previous, next, isLooping, toggleLoop, isShuffling, toggleShuffle, playNext, playPrevious, queue, setContextQueue]);
 
     return (
         <TrackContext.Provider value={trackContextValue}>

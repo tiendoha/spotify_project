@@ -147,3 +147,5 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+class AddTrackToPlaylistSerializer(serializers.Serializer):
+    track_id = serializers.IntegerField(required=True)
