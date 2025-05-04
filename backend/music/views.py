@@ -172,20 +172,25 @@ class ChatWithBot(APIView):
 
             # Gọi a2a_server để lấy gợi ý từ Gemini
             a2a_response = requests.post(
-                'http://127.0.0.1:5000/jsonrpc',
+                'http://127.0.0.1:5001/jsonrpc',  # Đã sửa thành cổng 5001
                 json={
                     'jsonrpc': '2.0',
                     'method': 'recommend_song',
                     'params': {'input': content, 'user_id': sender_id},
                     'id': 1
-                }
+                },
+                headers={'Content-Type': 'application/json'}
             )
+            a2a_response.raise_for_status()  # Kiểm tra lỗi HTTP
             a2a_data = a2a_response.json()
+
+            logger.info(f"Flask server response: {a2a_data}")  # Thêm log để debug
 
             if 'result' in a2a_data:
                 bot_response = a2a_data['result']
             else:
                 bot_response = "Xin lỗi, tôi không thể gợi ý bài hát lúc này."
+                logger.warning("No result in Flask response")
 
             # Lưu phản hồi của bot
             bot_message = Message.objects.create(
@@ -210,6 +215,12 @@ class ChatWithBot(APIView):
             return Response(
                 {'error': 'User or Bot not found'},
                 status=status.HTTP_404_NOT_FOUND
+            )
+        except requests.RequestException as e:
+            logger.error(f"Flask server error: {str(e)}")
+            return Response(
+                {'error': f'Flask server error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         except Exception as e:
             logger.error(f"Error in chat with bot: {str(e)}")
