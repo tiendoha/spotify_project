@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets';
 import { TrackContext } from '../context/PlayerContext';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -41,6 +43,14 @@ const Navbar = () => {
     localStorage.removeItem('username');
     setProfile(null);
     window.location.reload();
+  };
+
+  // Handle "Coming Soon" toast for buttons
+  const handleComingSoon = () => {
+    toast.info("Coming Soon", {
+      position: "top-right",
+      autoClose: 3000,
+    });
   };
 
   const handleSearch = async (query, type = '', genre = '') => {
@@ -111,6 +121,15 @@ const Navbar = () => {
 
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        theme="dark"
+        toastStyle={{ backgroundColor: "#181818", color: "#22c55e", border: "1px solid #22c55e" }}
+      />
       <div className="w-full flex justify-between items-center font-semibold relative">
         {/* Navigation buttons */}
         <div className="flex items-center gap-2">
@@ -158,7 +177,7 @@ const Navbar = () => {
                 <div className="flex gap-2 p-2 border-b border-gray-800">
                   <button
                     onClick={() => handleFilterTypeChange('')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterType === '' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm ${filterType === '' ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg.wp-gray-600'
                       }`}
                   >
                     <span className="text-teal-400 text-sm">🌐</span> All
@@ -290,10 +309,16 @@ const Navbar = () => {
           </div>
 
           {/* Other buttons */}
-          <p className="bg-gradient-to-r from-gray-200 to-gray-300 text-black text-sm px-4 py-1 rounded-full hidden md:block cursor-pointer hover:from-gray-300 hover:to-gray-400 transition-all duration-200 shadow-sm">
+          <p
+            onClick={handleComingSoon}
+            className="bg-gradient-to-r from-gray-200 to-gray-300 text-black text-sm px-4 py-1 rounded-full hidden md:block cursor-pointer hover:from-gray-300 hover:to-gray-400 transition-all duration-200 shadow-sm"
+          >
             Explore Premium
           </p>
-          <p className="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-sm px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm">
+          <p
+            onClick={handleComingSoon}
+            className="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-sm px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm"
+          >
             Install App
           </p>
           {profile ? (
@@ -365,10 +390,16 @@ const Navbar = () => {
         <p className="bg-gradient-to-r from-gray-200 to-gray-300 text-black px-4 py-1 rounded-full cursor-pointer hover:from-gray-300 hover:to-gray-400 transition-all duration-200 shadow-sm">
           All
         </p>
-        <p className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm">
+        <p
+          onClick={handleComingSoon}
+          className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm"
+        >
           Music
         </p>
-        <p className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm">
+        <p
+          onClick={handleComingSoon}
+          className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-1 rounded-full cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-sm"
+        >
           Podcasts
         </p>
       </div>

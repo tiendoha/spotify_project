@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { PlaybackContext } from "../context/PlayerContext";
 import { ToastContainer, toast } from "react-toastify";
 
-const PlayerProgress = ({ currentTrack }) => {
+const PlayerProgress = ({ currentTrack, isMvModalOpen }) => {
     const { audioRef, isPlaying } = useContext(PlaybackContext);
     const [time, setTime] = useState({
         currentTime: { second: 0, minute: 0 },
@@ -95,6 +95,61 @@ const PlayerProgress = ({ currentTrack }) => {
         };
     }, [audioRef, currentTrack]);
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Ignore key events when modal is open or track is loading
+            if (isMvModalOpen || isLoading) {
+                if (isLoading) {
+                    toast.warn("Please wait for the track to load before seeking!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                }
+                return;
+            }
+
+            const audio = audioRef.current;
+            if (!audio || !currentTrack) return;
+
+            let seekTime;
+            switch (e.key) {
+                case "ArrowLeft":
+                    e.preventDefault();
+                    seekTime = Math.max(0, audio.currentTime - 5);
+                    audio.currentTime = seekTime;
+                    setTime((prev) => ({
+                        ...prev,
+                        currentTime: {
+                            second: Math.floor(seekTime % 60),
+                            minute: Math.floor(seekTime / 60),
+                        },
+                    }));
+                    setProgress((seekTime / audio.duration) * 100 || 0);
+                    console.log(`Seeked backward to ${seekTime}s`);
+                    break;
+                case "ArrowRight":
+                    e.preventDefault();
+                    seekTime = Math.min(audio.duration || Infinity, audio.currentTime + 5);
+                    audio.currentTime = seekTime;
+                    setTime((prev) => ({
+                        ...prev,
+                        currentTime: {
+                            second: Math.floor(seekTime % 60),
+                            minute: Math.floor(seekTime / 60),
+                        },
+                    }));
+                    setProgress((seekTime / audio.duration) * 100 || 0);
+                    console.log(`Seeked forward to ${seekTime}s`);
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [audioRef, currentTrack, isLoading, isMvModalOpen]);
+
     const handleSeek = (e) => {
         if (!audioRef.current || isLoading) {
             toast.warn("Please wait for the track to load before seeking!", {
@@ -130,7 +185,8 @@ const PlayerProgress = ({ currentTrack }) => {
                 {time.currentTime.minute}:{String(time.currentTime.second).padStart(2, "0")}
             </p>
             <div
-                className={`flex-1 h-2 bg-gray-700 rounded-full relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:bg-gray-600 ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                className={`flex-1 h-2 bg-gray-700 rounded-full relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:bg-gray-600 ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
                 style={{ minWidth: "200px", maxWidth: "500px" }}
                 onClick={handleSeek}
             >

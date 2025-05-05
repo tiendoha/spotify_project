@@ -10,7 +10,17 @@ Modal.setAppElement("#root");
 
 const Player = () => {
     const { currentTrack, getArtistName, findMVbyId, musicVideo } = useContext(TrackContext);
-    const { audioRef, pause, isPlaying, play, playNext, playPrevious } = useContext(PlaybackContext);
+    const {
+        audioRef,
+        pause,
+        isPlaying,
+        play,
+        playPreviousTrack,
+        next,
+        setPlayNext,
+        setPlayPrevious,
+        queue,
+    } = useContext(PlaybackContext);
     const [volume, setVolume] = useState(50);
     const [isMuted, setIsMuted] = useState(false);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
@@ -18,44 +28,94 @@ const Player = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isMvModalOpen, setIsMvModalOpen] = useState(false);
     const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const [playlists, setPlaylists] = useState([]);
     const videoRef = useRef(null);
 
-    // Lấy danh sách playlist của user hiện tại khi component mount
+    // Set playNext and playPrevious for PlayerControls
     useEffect(() => {
-        const fetchPlaylists = async () => {
-            try {
-                const userId = parseInt(localStorage.getItem("user_id"));
-                const token = localStorage.getItem("token");
-                if (!userId || !token) {
-                    throw new Error("User ID or token not found in localStorage");
-                }
+        setPlayNext(() => () => next());
+        setPlayPrevious(() => () => playPreviousTrack());
+    }, [setPlayNext, setPlayPrevious, next, playPreviousTrack]);
 
-                const response = await fetch("http://127.0.0.1:8000/api/playlists/", {
-                    headers: {
-                        "Authorization": `Token ${token}`,
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch playlists: ${response.statusText}`);
-                }
-                const data = await response.json();
-                // Lọc playlist theo user_id
-                const userPlaylists = data.filter(playlist => playlist.user === userId);
-                setPlaylists(userPlaylists);
-            } catch (error) {
-                console.error("Failed to fetch playlists:", error);
-                toast.error("Failed to load playlists!", {
-                    position: "top-left",
-                    autoClose: 3000,
-                    icon: "🎵",
-                });
+    // Keyboard controls for volume
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Ignore key events when modal is open to avoid conflicts
+            if (isMvModalOpen) return;
+
+            const audio = audioRef.current;
+            if (!audio || !currentTrack) return;
+
+            switch (e.key) {
+                case "ArrowUp":
+                    e.preventDefault();
+                    setVolume(prev => {
+                        const newVolume = Math.min(100, prev + 5);
+                        audio.volume = newVolume / 100;
+                        setIsMuted(newVolume === 0);
+                        return newVolume;
+                    });
+                    break;
+                case "ArrowDown":
+                    e.preventDefault();
+                    setVolume(prev => {
+                        const newVolume = Math.max(0, prev - 5);
+                        audio.volume = newVolume / 100;
+                        setIsMuted(newVolume === 0);
+                        return newVolume;
+                    });
+                    break;
+                default:
+                    break;
             }
         };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [audioRef, currentTrack, isMvModalOpen]);
+
+    // Fetch playlists
+    const fetchPlaylists = async () => {
+        try {
+            const userId = parseInt(localStorage.getItem("user_id"));
+            const token = localStorage.getItem("token");
+            if (!userId || !token) {
+                throw new Error("User ID or token not found in localStorage");
+            }
+
+            const response = await fetch("http://127.0.0.1:8000/api/playlists/", {
+                headers: {
+                    Authorization: `Token ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch playlists: ${response.statusText}`);
+            }
+            const data = await response.json();
+            const userPlaylists = data.filter(playlist => playlist.user === userId);
+            setPlaylists(userPlaylists);
+        } catch (error) {
+            console.error("Failed to fetch playlists:", error);
+            toast.error("Failed to load playlists!", {
+                position: "top-left",
+                autoClose: 3000,
+                icon: "🎵",
+            });
+        }
+    };
+
+    useEffect(() => {
         fetchPlaylists();
     }, []);
 
-    // Xử lý Picture-in-Picture
+    useEffect(() => {
+        if (showPlaylistPopup) {
+            fetchPlaylists();
+        }
+    }, [showPlaylistPopup]);
+
+    // Handle video events
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
@@ -63,31 +123,82 @@ const Player = () => {
         const handleEnterPiP = () => {
             setIsInPictureInPicture(true);
             setIsMvModalOpen(false);
+            if (isVideoPlaying) {
+                video.play().catch(err => console.error("Failed to resume in PiP:", err));
+            }
         };
 
         const handleLeavePiP = () => {
             setIsInPictureInPicture(false);
             setIsMvModalOpen(true);
-        };
-
-        const handleEnded = () => {
-            setIsMvModalOpen(false);
-            setIsInPictureInPicture(false);
-            if (document.pictureInPictureElement) {
-                document.exitPictureInPicture();
+            if (isVideoPlaying) {
+                video.play().catch(err => console.error("Failed to resume after PiP:", err));
             }
         };
 
+        const handleEnded = () => {
+            setIsVideoPlaying(false);
+            setIsMvModalOpen(false);
+            setIsInPictureInPicture(false);
+            if (document.pictureInPictureElement) {
+                document.exitPictureInPicture().catch(err => console.error("Failed to exit PiP:", err));
+            }
+        };
+
+        const handlePlay = () => {
+            setIsVideoPlaying(true);
+        };
+
+        const handlePause = () => {
+            setIsVideoPlaying(false);
+        };
+
+        const handleSeeking = () => {
+            video.dataset.wasPlaying = isVideoPlaying ? "true" : "false";
+        };
+
+        const handleSeeked = () => {
+            if (video.dataset.wasPlaying === "true") {
+                video.play().catch(err => console.error("Failed to resume after seeking:", err));
+            }
+        };
+
+        const handleWaiting = () => {
+            if (video.dataset.wasPlaying === "true") {
+                video.play().catch(err => console.error("Failed to resume after buffering:", err));
+            }
+        };
+
+        const handleError = (e) => {
+            console.error("Video error:", e);
+            toast.error("Video playback failed!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+        };
+
+        video.addEventListener("play", handlePlay);
+        video.addEventListener("pause", handlePause);
+        video.addEventListener("seeking", handleSeeking);
+        video.addEventListener("seeked", handleSeeked);
+        video.addEventListener("waiting", handleWaiting);
+        video.addEventListener("error", handleError);
         video.addEventListener("ended", handleEnded);
         video.addEventListener("enterpictureinpicture", handleEnterPiP);
         video.addEventListener("leavepictureinpicture", handleLeavePiP);
 
         return () => {
+            video.removeEventListener("play", handlePlay);
+            video.removeEventListener("pause", handlePause);
+            video.removeEventListener("seeking", handleSeeking);
+            video.removeEventListener("seeked", handleSeeked);
+            video.removeEventListener("waiting", handleWaiting);
+            video.removeEventListener("error", handleError);
+            video.removeEventListener("ended", handleEnded);
             video.removeEventListener("enterpictureinpicture", handleEnterPiP);
             video.removeEventListener("leavepictureinpicture", handleLeavePiP);
-            video.removeEventListener("ended", handleEnded);
         };
-    }, []);
+    }, [isVideoPlaying]);
 
     const handleVolumeChange = (e) => {
         const newVolume = e.target.value;
@@ -221,7 +332,7 @@ const Player = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Token ${token}`,
+                    Authorization: `Token ${token}`,
                 },
                 body: JSON.stringify({ track_id: currentTrack.id }),
             });
@@ -231,7 +342,6 @@ const Player = () => {
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorMessage;
-                    // Handle duplicate track case without throwing
                     if (errorMessage === "Track is already in the playlist") {
                         toast.error(errorMessage, {
                             position: "top-left",
@@ -285,15 +395,19 @@ const Player = () => {
 
         pause();
         setIsMvModalOpen(true);
+        setIsVideoPlaying(true);
     };
 
     const handleCloseMvModal = () => {
+        const video = videoRef.current;
+        if (video && !video.paused) {
+            video.pause();
+            setIsVideoPlaying(false);
+        }
         setIsMvModalOpen(false);
         setIsInPictureInPicture(false);
-        if (videoRef.current && document.pictureInPictureElement) {
-            document.exitPictureInPicture().catch(err => {
-                console.error("Failed to exit Picture-in-Picture:", err);
-            });
+        if (video && document.pictureInPictureElement) {
+            document.exitPictureInPicture().catch(err => console.error("Failed to exit PiP:", err));
         }
     };
 
@@ -312,10 +426,12 @@ const Player = () => {
 
             if (!document.pictureInPictureElement) {
                 await video.requestPictureInPicture();
+            } else {
+                await document.exitPictureInPicture();
             }
         } catch (error) {
-            console.error("Failed to enter Picture-in-Picture:", error);
-            toast.error("Failed to enter Picture-in-Picture mode!", {
+            console.error("Failed to toggle Picture-in-Picture:", error);
+            toast.error("Failed to toggle Picture-in-Picture mode!", {
                 position: "bottom-right",
                 autoClose: 3000,
             });
@@ -323,15 +439,26 @@ const Player = () => {
     };
 
     const handleFullscreen = () => {
-        if (videoRef.current) {
-            videoRef.current.requestFullscreen().catch(err => {
-                console.error("Failed to enter fullscreen:", err);
-                toast.error("Failed to enter fullscreen mode!", {
-                    position: "bottom-right",
-                    autoClose: 3000,
-                });
+        const video = videoRef.current;
+        if (!video) return;
+
+        try {
+            if (!document.fullscreenElement) {
+                video.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        } catch (err) {
+            console.error("Failed to toggle fullscreen:", err);
+            toast.error("Failed to toggle fullscreen mode!", {
+                position: "bottom-right",
+                autoClose: 3000,
             });
         }
+    };
+
+    const stopPropagation = (e) => {
+        e.stopPropagation();
     };
 
     if (!currentTrack) {
@@ -368,8 +495,8 @@ const Player = () => {
                 </div>
 
                 <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] mx-auto">
-                    <PlayerControls playNext={playNext} playPrevious={playPrevious} />
-                    <PlayerProgress currentTrack={currentTrack} />
+                    <PlayerControls playNext={next} playPrevious={playPreviousTrack} />
+                    <PlayerProgress currentTrack={currentTrack} isMvModalOpen={isMvModalOpen} />
                 </div>
 
                 <div className="hidden lg:flex items-center gap-3 opacity-90 w-1/4 max-w-[200px] justify-end relative">
@@ -408,18 +535,14 @@ const Player = () => {
                     </div>
 
                     <div className="relative group">
-                        <i onClick={handleOpenMvModal} className="fas fa-video w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"></i>
+                        <i
+                            onClick={handleOpenMvModal}
+                            className="fas fa-video w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"
+                        ></i>
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                             Music Video
                         </span>
                     </div>
-
-                    {/* <div className="relative group">
-                        <i className="fas fa-list w-5 h-5 flex items-center justify-center cursor-pointer hover:opacity-100 transition-opacity duration-200"></i>
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                            Queue
-                        </span>
-                    </div> */}
 
                     <div className="relative group">
                         <i
@@ -456,7 +579,7 @@ const Player = () => {
                             <h3 className="text-white text-sm font-semibold mb-2">Add to Playlist</h3>
                             {playlists.length > 0 ? (
                                 <ul className="text-gray-400 text-sm max-h-40 overflow-y-auto">
-                                    {playlists.map((playlist) => (
+                                    {playlists.map(playlist => (
                                         <li
                                             key={playlist.id}
                                             className="py-1 hover:text-white cursor-pointer"
@@ -478,9 +601,12 @@ const Player = () => {
                         </div>
                     )}
                 </div>
+
                 <Modal
                     isOpen={isMvModalOpen}
                     onRequestClose={handleCloseMvModal}
+                    shouldFocusAfterRender={false}
+                    shouldCloseOnOverlayClick={true}
                     className="bg-gradient-to-br from-green-950 to-black rounded-xl p-6 shadow-2xl border border-gray-700 transition-all duration-300 w-[calc(70vh*16/9)] h-[70vh] mx-auto mt-10"
                     overlayClassName="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center"
                 >
@@ -514,12 +640,18 @@ const Player = () => {
                             </div>
                         </div>
 
-                        <div className="flex-1 w-full max-h-[calc(100%-4rem)] flex items-center justify-center relative aspect-[16/9]">
+                        <div
+                            className="flex-1 w-full max-h-[calc(100%-4rem)] flex items-center justify-center relative aspect-[16/9]"
+                            onMouseDown={stopPropagation}
+                            onTouchStart={stopPropagation}
+                        >
                             {musicVideo?.video_url ? (
                                 <video
                                     ref={videoRef}
                                     controls
                                     autoPlay
+                                    playsInline
+                                    preload="auto"
                                     className="w-full h-full p-2 rounded-lg shadow-lg"
                                     src={musicVideo.video_url}
                                 >

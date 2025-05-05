@@ -2,13 +2,24 @@ import React, { useContext } from "react";
 import { PlaybackContext } from "../context/PlayerContext";
 
 const PlayerControls = ({ playPrevious, playNext }) => {
-    const { isPlaying, play, pause, isLooping, toggleLoop, isShuffling, toggleShuffle, queue, previous, next } = useContext(PlaybackContext);
+    const {
+        isPlaying,
+        play,
+        pause,
+        isLooping,
+        toggleLoop,
+        isShuffling,
+        toggleShuffle,
+        queue,
+        playPreviousTrack,
+        next,
+    } = useContext(PlaybackContext);
 
     const handlePrevious = () => {
         if (queue && queue.length > 0 && typeof playPrevious === "function") {
             playPrevious();
         } else {
-            previous();
+            playPreviousTrack();
         }
     };
 
@@ -26,7 +37,8 @@ const PlayerControls = ({ playPrevious, playNext }) => {
             <div className="relative group">
                 <i
                     onClick={toggleShuffle}
-                    className={`fas fa-shuffle w-5 h-5 flex items-center justify-center cursor-pointer transition-all duration-200 ${isShuffling ? "text-green-400 opacity-100" : "text-white opacity-70 hover:opacity-100"}`}
+                    className={`fas fa-shuffle w-5 h-5 flex items-center justify-center cursor-pointer transition-all duration-200 ${isShuffling ? "text-green-400 opacity-100" : "text-white opacity-70 hover:opacity-100"
+                        }`}
                 ></i>
                 <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                     Shuffle
@@ -77,7 +89,8 @@ const PlayerControls = ({ playPrevious, playNext }) => {
             <div className="relative group">
                 <i
                     onClick={toggleLoop}
-                    className={`fas fa-repeat w-5 h-5 flex items-center justify-center cursor-pointer transition-all duration-200 ${isLooping ? "text-green-400 opacity-100" : "text-white opacity-70 hover:opacity-100"}`}
+                    className={`fas fa-repeat w-5 h-5 flex items-center justify-center cursor-pointer transition-all duration-200 ${isLooping ? "text-green-400 opacity-100" : "text-white opacity-70 hover:opacity-100"
+                        }`}
                 ></i>
                 <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                     Loop

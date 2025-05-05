@@ -23,6 +23,7 @@ export const PlayerContextProvider = ({ children }) => {
     const [playNext, setPlayNext] = useState(() => () => { });
     const [playPrevious, setPlayPrevious] = useState(() => () => { });
     const [queue, setQueue] = useState([]);
+    const [history, setHistory] = useState([]);
 
     useEffect(() => {
         const fetchTracks = async () => {
@@ -35,10 +36,12 @@ export const PlayerContextProvider = ({ children }) => {
 
                 const mvResponse = await axios.get("http://127.0.0.1:8000/api/music-videos/");
                 const mvs = mvResponse.data;
-                const formattedMVs = Array.isArray(mvs) ? mvs.map(mv => ({
-                    ...mv,
-                    video_url: `http://127.0.0.1:8000/media${mv.video_file}`
-                })) : [];
+                const formattedMVs = Array.isArray(mvs)
+                    ? mvs.map(mv => ({
+                        ...mv,
+                        video_url: `http://127.0.0.1:8000/media${mv.video_file}`,
+                    }))
+                    : [];
                 setMusicVideos(formattedMVs);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -56,17 +59,21 @@ export const PlayerContextProvider = ({ children }) => {
         return artist ? artist.name : "Unknown Artist";
     };
 
-    const findMVbyId = useCallback((trackId) => {
-        if (!trackId) return null;
+    const findMVbyId = useCallback(
+        (trackId) => {
+            if (!trackId) return null;
 
-        const mv = musicVideos.find(mv => mv.track === trackId || mv.track === Number(trackId)) || null;
-        setMusicVideo(mv);
-        return mv;
-    }, [musicVideos]);
+            const mv = musicVideos.find(mv => mv.track === trackId || mv.track === Number(trackId)) || null;
+            setMusicVideo(mv);
+            return mv;
+        },
+        [musicVideos]
+    );
 
     const play = useCallback(() => {
         if (audioRef.current && currentTrack) {
-            audioRef.current.play()
+            audioRef.current
+                .play()
                 .then(() => {
                     setIsPlaying(true);
                 })
@@ -88,47 +95,58 @@ export const PlayerContextProvider = ({ children }) => {
         }
     }, []);
 
-    const playTrackById = useCallback((id) => {
-        const track = tracks.find(t => t.id === id);
-        if (track && audioRef.current) {
-            // Kiểm tra nếu track không nằm trong queue hiện tại, reset queue
-            if (queue.length > 0 && !queue.find(t => t.id === id)) {
-                setQueue([]);
-                toast.info("Playing from global tracks, queue reset!", {
+    const playTrackById = useCallback(
+        (id) => {
+            const track = tracks.find(t => t.id === id);
+            if (track && audioRef.current) {
+                // Reset queue if track is not in current queue
+                if (queue.length > 0 && !queue.find(t => t.id === id)) {
+                    setQueue([]);
+                    toast.info("Playing from global tracks, queue reset!", {
+                        position: "bottom-right",
+                        autoClose: 3000,
+                    });
+                }
+
+                // Add current track to history before switching, unless it's the same track
+                if (currentTrack && currentTrack.id !== track.id) {
+                    setHistory(prev => [...prev, currentTrack]);
+                }
+
+                setCurrentTrack(track);
+                audioRef.current.src = `http://127.0.0.1:8000/media${track.file}`;
+                audioRef.current.load();
+                audioRef.current
+                    .play()
+                    .then(() => setIsPlaying(true))
+                    .catch((error) => {
+                        console.error("Error playing track:", error);
+                        setIsPlaying(false);
+                        toast.error("Failed to play the track!", {
+                            position: "bottom-right",
+                            autoClose: 3000,
+                        });
+                    });
+            } else {
+                toast.error("Track not found!", {
                     position: "bottom-right",
                     autoClose: 3000,
                 });
             }
+        },
+        [tracks, queue, currentTrack]
+    );
 
-            setCurrentTrack(track);
-            audioRef.current.src = `http://127.0.0.1:8000/media${track.file}`;
-            audioRef.current.load();
-            audioRef.current.play()
-                .then(() => setIsPlaying(true))
-                .catch((error) => {
-                    console.error("Error playing track:", error);
-                    setIsPlaying(false);
-                    toast.error("Failed to play the track!", {
-                        position: "bottom-right",
-                        autoClose: 3000,
-                    });
-                });
-        } else {
-            toast.error("Track not found!", {
-                position: "bottom-right",
-                autoClose: 3000,
-            });
-        }
-    }, [tracks, queue]);
-
-    const previous = useCallback(() => {
-        const currentIndex = tracks.findIndex(t => t.id === currentTrack?.id);
-        if (currentIndex > 0 && audioRef.current) {
-            const prevTrack = tracks[currentIndex - 1];
+    const playPreviousTrack = useCallback(() => {
+        if (history.length > 0 && audioRef.current) {
+            const prevTrack = history[history.length - 1];
+            // Remove the track from history
+            setHistory(prev => prev.slice(0, -1));
             setCurrentTrack(prevTrack);
             audioRef.current.src = `http://127.0.0.1:8000/media${prevTrack.file}`;
             audioRef.current.load();
-            audioRef.current.play()
+            audioRef.current
+                .play()
                 .then(() => setIsPlaying(true))
                 .catch((error) => {
                     console.error("Error playing previous track:", error);
@@ -138,8 +156,17 @@ export const PlayerContextProvider = ({ children }) => {
                         autoClose: 3000,
                     });
                 });
+        } else {
+            toast.info("No previous track in history!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
         }
-    }, [tracks, currentTrack]);
+    }, [history]);
+
+    const previous = useCallback(() => {
+        playPreviousTrack();
+    }, [playPreviousTrack]);
 
     const next = useCallback(() => {
         if (queue && queue.length > 0) {
@@ -164,10 +191,15 @@ export const PlayerContextProvider = ({ children }) => {
             }
 
             if (nextTrack && audioRef.current) {
+                // Add current track to history
+                if (currentTrack && currentTrack.id !== nextTrack.id) {
+                    setHistory(prev => [...prev, currentTrack]);
+                }
                 setCurrentTrack(nextTrack);
                 audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
                 audioRef.current.load();
-                audioRef.current.play()
+                audioRef.current
+                    .play()
                     .then(() => setIsPlaying(true))
                     .catch((error) => {
                         console.error("Error playing next track from queue:", error);
@@ -215,10 +247,15 @@ export const PlayerContextProvider = ({ children }) => {
             }
 
             if (nextTrack && audioRef.current) {
+                // Add current track to history
+                if (currentTrack && currentTrack.id !== nextTrack.id) {
+                    setHistory(prev => [...prev, currentTrack]);
+                }
                 setCurrentTrack(nextTrack);
                 audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
                 audioRef.current.load();
-                audioRef.current.play()
+                audioRef.current
+                    .play()
                     .then(() => setIsPlaying(true))
                     .catch((error) => {
                         console.error("Error playing next track from global tracks:", error);
@@ -241,7 +278,8 @@ export const PlayerContextProvider = ({ children }) => {
         const handleEnded = () => {
             if (isLooping) {
                 audioRef.current.currentTime = 0;
-                audioRef.current.play()
+                audioRef.current
+                    .play()
                     .then(() => setIsPlaying(true))
                     .catch((error) => {
                         console.error("Error looping track:", error);
@@ -271,33 +309,58 @@ export const PlayerContextProvider = ({ children }) => {
         setQueue(newQueue || []);
     }, []);
 
-    const trackContextValue = useMemo(() => ({
-        tracks,
-        currentTrack,
-        playTrackById,
-        getArtistName,
-        musicVideo,
-        findMVbyId,
-    }), [tracks, currentTrack, playTrackById, artists, findMVbyId, musicVideo]);
+    const trackContextValue = useMemo(
+        () => ({
+            tracks,
+            currentTrack,
+            playTrackById,
+            getArtistName,
+            musicVideo,
+            findMVbyId,
+        }),
+        [tracks, currentTrack, playTrackById, artists, findMVbyId, musicVideo]
+    );
 
-    const playbackContextValue = useMemo(() => ({
-        audioRef,
-        isPlaying,
-        play,
-        pause,
-        previous,
-        next,
-        isLooping,
-        toggleLoop,
-        isShuffling,
-        toggleShuffle,
-        playNext,
-        playPrevious,
-        setPlayNext,
-        setPlayPrevious,
-        queue,
-        setContextQueue,
-    }), [audioRef, isPlaying, play, pause, previous, next, isLooping, toggleLoop, isShuffling, toggleShuffle, playNext, playPrevious, queue, setContextQueue]);
+    const playbackContextValue = useMemo(
+        () => ({
+            audioRef,
+            isPlaying,
+            play,
+            pause,
+            previous,
+            next,
+            isLooping,
+            toggleLoop,
+            isShuffling,
+            toggleShuffle,
+            playNext,
+            playPrevious,
+            setPlayNext,
+            setPlayPrevious,
+            queue,
+            setContextQueue,
+            history,
+            playPreviousTrack,
+        }),
+        [
+            audioRef,
+            isPlaying,
+            play,
+            pause,
+            previous,
+            next,
+            isLooping,
+            toggleLoop,
+            isShuffling,
+            toggleShuffle,
+            playNext,
+            playPrevious,
+            queue,
+            setContextQueue,
+            history,
+            playPreviousTrack,
+        ]
+    );
 
     return (
         <TrackContext.Provider value={trackContextValue}>

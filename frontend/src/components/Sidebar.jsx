@@ -3,6 +3,8 @@ import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
 import { TrackContext } from '../context/PlayerContext';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -14,7 +16,6 @@ const Sidebar = () => {
     const [newPlaylistName, setNewPlaylistName] = useState('');
     const [editPlaylistId, setEditPlaylistId] = useState(null);
     const [editPlaylistName, setEditPlaylistName] = useState('');
-    const [editPlaylistImage, setEditPlaylistImage] = useState(null);
 
     // Danh sách màu ngẫu nhiên
     const colors = [
@@ -26,6 +27,14 @@ const Sidebar = () => {
     const getColorById = (id) => {
         const index = id % colors.length;
         return colors[index];
+    };
+
+    // Handle "Coming Soon" for nav items
+    const handleComingSoon = (feature) => {
+        toast.info(`${feature} - Coming Soon`, {
+            position: "top-right",
+            autoClose: 3000,
+        });
     };
 
     // Fetch playlists for the logged-in user
@@ -126,13 +135,20 @@ const Sidebar = () => {
             setShowEditModal(false);
             setEditPlaylistId(null);
             setEditPlaylistName('');
-            setEditPlaylistImage(null);
         } catch (error) {
             console.error('Error updating playlist:', error);
             if (error.response) {
                 console.log('Response data:', error.response.data);
             }
         }
+    };
+
+    // Handle "Change Image" in edit playlist
+    const handleChangeImage = () => {
+        toast.info("Change Image - Coming Soon", {
+            position: "top-right",
+            autoClose: 3000,
+        });
     };
 
     // Toggle minimize/maximize and rotate arrow
@@ -142,6 +158,17 @@ const Sidebar = () => {
 
     return (
         <div className="w-[25%] h-full p-4 flex flex-col gap-4 text-white hidden lg:flex bg-black rounded-lg shadow-2xl">
+            {/* Toast Container */}
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                closeOnClick
+                pauseOnHover
+                theme="dark"
+                toastStyle={{ backgroundColor: "#181818", color: "#22c55e", border: "1px solid #22c55e" }}
+            />
+
             {/* Navigation Section */}
             <div className="h-[15%] rounded-lg bg-gradient-to-br from-black to-[#1a1a1a] p-4 flex flex-col justify-around shadow-md hover:shadow-lg transition-shadow duration-300">
                 <div
@@ -161,7 +188,7 @@ const Sidebar = () => {
             </div>
 
             {/* Library Section */}
-            <div className={`rounded-lg bg-gradient-to-br from-black to-[#1a1a1a] p-4 flex flex-col transition-all duration-700 shadow-md hover:shadow-lg ${isMinimized ? 'h-[10%]' : 'h-[85%]'}`}>
+            <div className={`rounded-lg bg-gradient-to-br from-black to-[#1a1a1a] p-4 flex flex-col transition-all duration-700 shadow-md hover:shadow-lg ${isMinimized ? 'h-[10%]' : 'h-[75%]'}`}>
                 <div className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <i className="fas fa-book"></i>
@@ -311,13 +338,14 @@ const Sidebar = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="block text-gray-300 mb-2">Cover image (optional)</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => setEditPlaylistImage(e.target.files[0])}
-                                    className="w-full p-2 bg-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e]"
-                                />
+                                <label className="block text-gray-300 mb-2">Cover image</label>
+                                <button
+                                    type="button"
+                                    onClick={handleChangeImage}
+                                    className="px-4 py-2 bg-[#22c55e] text-black rounded hover:bg-[#16a34a] transition-all duration-200"
+                                >
+                                    Change Image
+                                </button>
                             </div>
                             <div className="flex justify-end gap-4">
                                 <button
