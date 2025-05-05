@@ -137,7 +137,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "54.252.222.234",
+    "http://54.252.222.234:8000",
 ]
 LOGGING = {
     'version': 1,
