@@ -84,7 +84,7 @@ const Player = () => {
                 throw new Error("User ID or token not found in localStorage");
             }
 
-            const response = await fetch("http://127.0.0.1:8000/api/playlists/", {
+            const response = await fetch("/api/playlists/", {
                 headers: {
                     Authorization: `Token ${token}`,
                 },
@@ -232,7 +232,7 @@ const Player = () => {
         }
 
         setIsDownloading(true);
-        const downloadUrl = `http://127.0.0.1:8000/media${currentTrack.file}`;
+        const downloadUrl = `/media${currentTrack.file}`;
 
         try {
             const response = await fetch(downloadUrl);
@@ -271,7 +271,7 @@ const Player = () => {
     };
 
     const handleShare = async () => {
-        const shareUrl = `http://127.0.0.1:8000/tracks/${currentTrack.id}`;
+        const shareUrl = `/tracks/${currentTrack.id}`;
         const shareData = {
             title: currentTrack.name,
             text: `Check out this song by ${getArtistName(currentTrack.artist)}!`,
@@ -328,7 +328,7 @@ const Player = () => {
                 return;
             }
 
-            const response = await fetch(`http://127.0.0.1:8000/api/playlists/${playlistId}/add_track/`, {
+            const response = await fetch(`/api/playlists/${playlistId}/add_track/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -481,7 +481,7 @@ const Player = () => {
                 <div className="hidden lg:flex items-center gap-4 w-1/4 max-w-[250px]">
                     <img
                         className="w-14 h-14 object-cover rounded-md shadow-md transition-transform duration-300 hover:scale-105"
-                        src={`http://127.0.0.1:8000/media${currentTrack.image}`}
+                        src={`/media${currentTrack.image}`}
                         alt={currentTrack.name || "Unknown"}
                     />
                     <div className="overflow-hidden">

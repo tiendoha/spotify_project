@@ -9,7 +9,7 @@ const Messages = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const token = localStorage.getItem("token");
   const currentUserId = parseInt(localStorage.getItem("user_id"));
-  const MEDIA_URL = "http://127.0.0.1:8000/media/";
+  const MEDIA_URL = "/media/";
 
   // Lấy danh sách lịch sử trò chuyện (polling mỗi 1 giây)
   useEffect(() => {
@@ -17,7 +17,7 @@ const Messages = () => {
       if (!token || !currentUserId) return;
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/inbox/${currentUserId}/`,
+          `/api/inbox/${currentUserId}/`,
           {
             headers: { Authorization: `Token ${token}` },
           }
@@ -75,7 +75,7 @@ const Messages = () => {
     }
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/search/${term}/`,
+        `/api/search/${term}/`,
         {
           headers: { Authorization: `Token ${token}` },
         }
@@ -150,11 +150,10 @@ const Messages = () => {
               <li
                 key={result.user.id}
                 onClick={() => handleUserSelect(result.user.id)}
-                className={`p-4 rounded-lg cursor-pointer flex items-center transition-colors duration-200 ${
-                  selectedUserId === result.user.id
+                className={`p-4 rounded-lg cursor-pointer flex items-center transition-colors duration-200 ${selectedUserId === result.user.id
                     ? "bg-green-600"
                     : "bg-gray-700 hover:bg-gray-600"
-                }`}
+                  }`}
               >
                 <img
                   src={result.profile_image}

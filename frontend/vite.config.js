@@ -11,13 +11,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://3.27.246.194:8000',
+        target: 'http://3.0.19.68',
         changeOrigin: true,
       },
     },
   },
   define: {
-    'process.env.REACT_APP_BACKEND_URL': JSON.stringify('http://3.27.246.194:8000'),
+    'process.env.REACT_APP_BACKEND_URL': JSON.stringify('http://3.0.19.68'),
     'process.env.REACT_APP_GOOGLE_API_KEY': JSON.stringify('AIzaSyDfIyaLMuJR2C-f2lyHCdaFvWXsTp36BLs'),
   },
 });

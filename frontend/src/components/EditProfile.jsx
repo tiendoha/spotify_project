@@ -28,7 +28,7 @@ const EditProfile = () => {
         }
 
         // Fetch profile data
-        fetch(`http://localhost:8000/api/profiles/${userId}/`, {
+        fetch(`/api/profiles/${userId}/`, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -132,7 +132,7 @@ const EditProfile = () => {
             }
 
             if (Object.keys(userData).length > 0) {
-                const userResponse = await fetch(`http://localhost:8000/api/users/${userId}/`, {
+                const userResponse = await fetch(`/api/users/${userId}/`, {
                     method: "PATCH",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -157,7 +157,7 @@ const EditProfile = () => {
             }
 
             if (Array.from(profileData.entries()).length > 0) {
-                const profileResponse = await fetch(`http://localhost:8000/api/profiles/${userId}/`, {
+                const profileResponse = await fetch(`/api/profiles/${userId}/`, {
                     method: "PATCH",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -220,7 +220,7 @@ const EditProfile = () => {
                         {/* Profile Image */}
                         <div className="flex flex-col items-center mb-4">
                             <img
-                                src={profile.profile_image ? `http://localhost:8000${profile.profile_image}` : getInitialAvatar(formData.username)}
+                                src={profile.profile_image ? `${profile.profile_image}` : getInitialAvatar(formData.username)}
                                 alt="Profile"
                                 className="w-24 h-24 rounded-full border-2 border-green-500 mb-2 object-cover"
                             />

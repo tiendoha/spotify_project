@@ -6,7 +6,7 @@ const SongItem = ({ name, image, artist_name, id }) => {
     const { playTrackById } = useContext(TrackContext);
     const navigate = useNavigate();
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-    const baseUrl = 'http://127.0.0.1:8000/media';
+    const baseUrl = '/media';
     const imageUrl = image ? `${baseUrl}${image}` : '';
 
     // Check login status and play track

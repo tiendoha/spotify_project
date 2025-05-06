@@ -49,7 +49,7 @@ const Signup = () => {
 
     // Gửi request nếu không có lỗi
     try {
-      const response = await axios.post('http://localhost:8000/api/register/', {
+      const response = await axios.post('/api/register/', {
         email,
         username,
         password,
@@ -57,10 +57,10 @@ const Signup = () => {
       setErrors({}); // Xóa lỗi khi thành công
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
-        const errData = error.response?.data;
-        const errMsg = errData?.error || errData?.detail || "Lỗi không xác định";
-        console.error("Lỗi đăng ký:", errData);
-        setErrors({ server: errMsg });
+      const errData = error.response?.data;
+      const errMsg = errData?.error || errData?.detail || "Lỗi không xác định";
+      console.error("Lỗi đăng ký:", errData);
+      setErrors({ server: errMsg });
     }
   };
 
@@ -92,7 +92,7 @@ const Signup = () => {
       <form onSubmit={handleSignup} className="auth-form">
         <h2>Đăng ký miễn phí</h2>
         {errors.server && <p className="error">{errors.server}</p>}
-        
+
         <div className="form-group">
           <input
             type="email"

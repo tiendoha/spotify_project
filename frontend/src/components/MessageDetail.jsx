@@ -6,7 +6,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
   const [newMessage, setNewMessage] = useState("");
   const [otherUserProfile, setOtherUserProfile] = useState(null);
   const messagesEndRef = useRef(null); // Ref để cuộn xuống dưới cùng
-  const MEDIA_URL = "http://127.0.0.1:8000/media/";
+  const MEDIA_URL = "/media/";
 
   // Hàm cuộn xuống dưới cùng
   const scrollToBottom = () => {
@@ -21,7 +21,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
       if (!otherUserId || !token) return;
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/profiles/${otherUserId}/`,
+          `/api/profiles/${otherUserId}/`,
           {
             headers: { Authorization: `Token ${token}` },
           }
@@ -53,7 +53,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
       console.log(`Fetching messages for: { currentUserId: ${currentUserId}, otherUserId: ${otherUserId} }`);
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/messages/${currentUserId}/${otherUserId}/`,
+          `/api/messages/${currentUserId}/${otherUserId}/`,
           {
             headers: { Authorization: `Token ${token}` },
           }
@@ -84,7 +84,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
       if (otherUserId === 27) {
         // Gửi tới bot
         await axios.post(
-          `http://127.0.0.1:8000/api/chat-with-bot/`,
+          `/api/chat-with-bot/`,
           {
             sender: currentUserId,
             content: newMessage,
@@ -96,7 +96,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
       } else {
         // Gửi tới người dùng khác
         await axios.post(
-          `http://127.0.0.1:8000/api/send-message/`,
+          `/api/send-message/`,
           {
             receiver: otherUserId,
             content: newMessage,
@@ -109,7 +109,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
       setNewMessage("");
       // Lấy lại tin nhắn sau khi gửi
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/messages/${currentUserId}/${otherUserId}/`,
+        `/api/messages/${currentUserId}/${otherUserId}/`,
         {
           headers: { Authorization: `Token ${token}` },
         }
@@ -141,14 +141,12 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`mb-2 ${
-              msg.sender.id === currentUserId ? "text-right" : "text-left"
-            }`}
+            className={`mb-2 ${msg.sender.id === currentUserId ? "text-right" : "text-left"
+              }`}
           >
             <span
-              className={`inline-block p-2 rounded ${
-                msg.sender.id === currentUserId ? "bg-green-600" : "bg-gray-700"
-              }`}
+              className={`inline-block p-2 rounded ${msg.sender.id === currentUserId ? "bg-green-600" : "bg-gray-700"
+                }`}
             >
               {msg.content}
             </span>

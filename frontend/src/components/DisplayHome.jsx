@@ -17,9 +17,9 @@ const DisplayHome = () => {
         const fetchData = async () => {
             try {
                 const [albumsRes, tracksRes, artistsRes] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/api/albums/'),
-                    axios.get('http://127.0.0.1:8000/api/tracks/'),
-                    axios.get('http://127.0.0.1:8000/api/artists/'),
+                    axios.get('/api/albums/'),
+                    axios.get('/api/tracks/'),
+                    axios.get('/api/artists/'),
                 ]);
                 setAlbums(albumsRes.data);
                 setTracks(tracksRes.data);
@@ -37,10 +37,10 @@ const DisplayHome = () => {
 
     const handleArtistClick = (artist) => {
         setModalData(artist);
-      };
-      
-    
-      const closeModal = () => {
+    };
+
+
+    const closeModal = () => {
         setModalData(null);
     };
     return (
@@ -51,11 +51,11 @@ const DisplayHome = () => {
                 <div className="flex overflow-auto">
                     {artists.map((item) => (
                         <ArtistItem
-                        key={item.id}
-                        name={item.name}
-                        id={item.id}
-                        image={item.image}
-                        onClick={() => handleArtistClick(item)}
+                            key={item.id}
+                            name={item.name}
+                            id={item.id}
+                            image={item.image}
+                            onClick={() => handleArtistClick(item)}
                         />
                     ))}
                 </div>
