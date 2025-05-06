@@ -54,3 +54,4 @@ frontend/src/assets/
 **/__pycache__/
 *.pyc
 *.pyo
+.vercel
