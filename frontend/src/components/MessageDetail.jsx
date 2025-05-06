@@ -33,10 +33,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
           username: response.data.user.username,
           profile_image: profileImage,
         });
-        console.log(`Profile for user ${otherUserId}:`, {
-          username: response.data.user.username,
-          profile_image: profileImage,
-        });
+
       } catch (error) {
         console.error(`Error fetching profile for user ${otherUserId}:`, error);
         setOtherUserProfile({ username: "Unknown", profile_image: "/default_image.jpg" });
@@ -50,7 +47,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
   useEffect(() => {
     const fetchMessages = async () => {
       if (!currentUserId || !otherUserId) return;
-      console.log(`Fetching messages for: { currentUserId: ${currentUserId}, otherUserId: ${otherUserId} }`);
+
       try {
         const response = await axios.get(
           `http://127.0.0.1:8000/api/messages/${currentUserId}/${otherUserId}/`,
@@ -58,7 +55,7 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
             headers: { Authorization: `Token ${token}` },
           }
         );
-        console.log("Messages fetched:", response.data);
+
         setMessages(response.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -141,14 +138,12 @@ const MessageDetail = ({ currentUserId, otherUserId, token, className }) => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`mb-2 ${
-              msg.sender.id === currentUserId ? "text-right" : "text-left"
-            }`}
+            className={`mb-2 ${msg.sender.id === currentUserId ? "text-right" : "text-left"
+              }`}
           >
             <span
-              className={`inline-block p-2 rounded ${
-                msg.sender.id === currentUserId ? "bg-green-600" : "bg-gray-700"
-              }`}
+              className={`inline-block p-2 rounded ${msg.sender.id === currentUserId ? "bg-green-600" : "bg-gray-700"
+                }`}
             >
               {msg.content}
             </span>

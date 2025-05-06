@@ -35,8 +35,7 @@ const Messages = () => {
             const profileImage = rawImage
               ? `${MEDIA_URL}${rawImage.slice(1)}`
               : "/default_image.jpg";
-            console.log(`Raw image for ${partner.username}:`, rawImage);
-            console.log(`Processed image for ${partner.username}:`, profileImage);
+
             return {
               user: partner,
               profile_image: profileImage,
@@ -53,7 +52,7 @@ const Messages = () => {
           sent_at: "9999-12-31T23:59:59Z",
           latest_message: "Ask me for song recommendations!",
         };
-        console.log("Bot profile image:", botProfile.profile_image);
+
         setConversationPartners([botProfile, ...uniquePartners]);
       } catch (error) {
         console.error("Error fetching conversation partners:", error);
@@ -87,8 +86,7 @@ const Messages = () => {
             const profileImage = rawImage
               ? `${MEDIA_URL}${rawImage.slice(1)}`
               : "/default_image.jpg";
-            console.log(`Raw search image for ${profile.user.username}:`, rawImage);
-            console.log(`Processed search image for ${profile.user.username}:`, profileImage);
+
             return {
               user: { id: profile.user.id, username: profile.user.username },
               profile_image: profileImage,
@@ -150,11 +148,10 @@ const Messages = () => {
               <li
                 key={result.user.id}
                 onClick={() => handleUserSelect(result.user.id)}
-                className={`p-4 rounded-lg cursor-pointer flex items-center transition-colors duration-200 ${
-                  selectedUserId === result.user.id
+                className={`p-4 rounded-lg cursor-pointer flex items-center transition-colors duration-200 ${selectedUserId === result.user.id
                     ? "bg-green-600"
                     : "bg-gray-700 hover:bg-gray-600"
-                }`}
+                  }`}
               >
                 <img
                   src={result.profile_image}

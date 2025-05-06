@@ -41,7 +41,6 @@ const Player = () => {
     // Keyboard controls for volume
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Ignore key events when modal is open to avoid conflicts
             if (isMvModalOpen) return;
 
             const audio = audioRef.current;
@@ -77,13 +76,16 @@ const Player = () => {
 
     // Fetch playlists
     const fetchPlaylists = async () => {
-        try {
-            const userId = parseInt(localStorage.getItem("user_id"));
-            const token = localStorage.getItem("token");
-            if (!userId || !token) {
-                throw new Error("User ID or token not found in localStorage");
-            }
+        const userId = localStorage.getItem("user_id");
+        const token = localStorage.getItem("token");
 
+        // Nếu không có user_id hoặc token, không fetch và không hiển thị toast
+        if (!userId || !token) {
+            setPlaylists([]); // Đặt playlists về mảng rỗng
+            return; // Thoát hàm mà không ném lỗi
+        }
+
+        try {
             const response = await fetch("http://127.0.0.1:8000/api/playlists/", {
                 headers: {
                     Authorization: `Token ${token}`,
@@ -93,10 +95,11 @@ const Player = () => {
                 throw new Error(`Failed to fetch playlists: ${response.statusText}`);
             }
             const data = await response.json();
-            const userPlaylists = data.filter(playlist => playlist.user === userId);
+            const userPlaylists = data.filter(playlist => playlist.user === parseInt(userId));
             setPlaylists(userPlaylists);
         } catch (error) {
             console.error("Failed to fetch playlists:", error);
+            setPlaylists([]); // Đặt playlists về rỗng nếu có lỗi
             toast.error("Failed to load playlists!", {
                 position: "top-left",
                 autoClose: 3000,

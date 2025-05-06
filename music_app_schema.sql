@@ -67,6 +67,7 @@ INSERT INTO artists (id, name, image) VALUES
 (6, 'Adele', '/artists/adele.png'),
 (7, 'Nirvana', '/artists/nirvana.png'),
 (8, 'Ella Fitzgerald', '/artists/ella.png');
+
 -- Albums
 INSERT INTO albums (id, name, release_date, image, artist_id) VALUES
 (1, 'I Can Do It With A Broken Heart', '2020-12-11', '/albums/broken-heart.jpeg', 1),
@@ -144,6 +145,7 @@ INSERT INTO playlists (id, name, image, user_id) VALUES
 (23, 'Jazz Classics', '/playlists/jazz_classics.jpg', 24),
 (24, 'Pop Hits 2025', '/playlists/pop_hits_2025.jpg', 25),
 (25, 'Rock Revival', '/playlists/rock_revival.jpg', 26);
+SELECT setval('playlists_id_seq', (SELECT MAX(id) FROM playlists) + 1);
 
 -- Playlist Tracks
 INSERT INTO playlist_tracks (id, playlist_id, track_id, track_order) VALUES
