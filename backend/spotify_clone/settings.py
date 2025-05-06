@@ -12,7 +12,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-gd49g=f19jsiri2kym6k2
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['3.27.246.194', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['52.65.17.6', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -45,7 +45,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://3.27.246.194',
+    'http://52.65.17.6',
     'http://localhost:5173',
 ]
 
