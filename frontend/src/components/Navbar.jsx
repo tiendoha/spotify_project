@@ -23,7 +23,7 @@ const Navbar = () => {
     const userId = localStorage.getItem('user_id');
     const token = localStorage.getItem('token');
     if (userId && token) {
-      fetch(`http://localhost:8000/api/profiles/${userId}/`, {
+      fetch(`/api/profiles/${userId}/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ const Navbar = () => {
 
     if (query.length > 0) {
       try {
-        let url = `http://localhost:8000/api/search/?q=${encodeURIComponent(query)}`;
+        let url = `/api/search/?q=${encodeURIComponent(query)}`;
         if (type) url += `&type=${type}`;
         if (genre) url += `&genre=${genre}`;
 

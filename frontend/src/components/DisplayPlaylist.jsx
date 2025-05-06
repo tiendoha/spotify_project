@@ -20,19 +20,19 @@ const DisplayPlaylist = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const playlistRes = await axios.get(`http://127.0.0.1:8000/api/playlists/${id}/`);
+                const playlistRes = await axios.get(`/api/playlists/${id}/`);
                 setPlaylist(playlistRes.data);
 
-                const userRes = await axios.get(`http://127.0.0.1:8000/api/users/${playlistRes.data.user}/`);
+                const userRes = await axios.get(`/api/users/${playlistRes.data.user}/`);
                 setUser(userRes.data);
 
-                const playlistTracksRes = await axios.get('http://127.0.0.1:8000/api/playlist-tracks/');
+                const playlistTracksRes = await axios.get('/api/playlist-tracks/');
                 const playlistTracks = playlistTracksRes.data
                     .filter(item => item.playlist === parseInt(id));
 
                 const trackPromises = playlistTracks.map(async (item) => {
-                    const trackRes = await axios.get(`http://127.0.0.1:8000/api/tracks/${item.track}/`);
-                    const artistRes = await axios.get(`http://127.0.0.1:8000/api/artists/${trackRes.data.artist}/`);
+                    const trackRes = await axios.get(`/api/tracks/${item.track}/`);
+                    const artistRes = await axios.get(`/api/artists/${trackRes.data.artist}/`);
                     return { ...trackRes.data, playlistTrackId: item.id, artistName: artistRes.data.name };
                 });
                 const trackDetails = await Promise.all(trackPromises);
@@ -124,7 +124,7 @@ const DisplayPlaylist = () => {
         }
 
         try {
-            await axios.delete(`http://127.0.0.1:8000/api/playlist-tracks/${playlistTrackId}/`, {
+            await axios.delete(`/api/playlist-tracks/${playlistTrackId}/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const updatedTracks = tracks.filter(track => track.playlistTrackId !== playlistTrackId);
@@ -162,7 +162,7 @@ const DisplayPlaylist = () => {
                 <div className="flex gap-8 flex-col md:flex-row md:items-end bg-[#181818] rounded-xl p-6 shadow-lg">
                     <img
                         className="w-56 h-56 rounded-lg shadow-md hover:opacity-90 transition-opacity duration-300"
-                        src={playlist.image ? `http://127.0.0.1:8000/media${playlist.image}` : getInitialAvatar()}
+                        src={playlist.image ? `/media${playlist.image}` : getInitialAvatar()}
                         alt={playlist.name}
                     />
                     <div className="flex flex-col">
@@ -197,7 +197,7 @@ const DisplayPlaylist = () => {
                             >
                                 <p className="col-span-2 text-white flex items-center cursor-pointer" onClick={() => handlePlayOrPrompt(item.id)}>
                                     <span className="mr-4 text-[#B3B3B3] group-hover:text-[#1ed760]">{index + 1}</span>
-                                    <img className="w-12 h-12 rounded-md mr-4 shadow-sm" src={`http://127.0.0.1:8000/media${item.image}`} alt="" />
+                                    <img className="w-12 h-12 rounded-md mr-4 shadow-sm" src={`/media${item.image}`} alt="" />
                                     <span className="truncate">{item.name}</span>
                                 </p>
                                 <p className="text-sm truncate">{item.artistName}</p>

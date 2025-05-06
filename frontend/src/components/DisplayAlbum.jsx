@@ -20,10 +20,10 @@ const DisplayAlbum = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const albumRes = await axios.get(`http://127.0.0.1:8000/api/albums/${id}/`);
-                const artistRes = await axios.get(`http://127.0.0.1:8000/api/artists/${albumRes.data.artist}/`);
+                const albumRes = await axios.get(`/api/albums/${id}/`);
+                const artistRes = await axios.get(`/api/artists/${albumRes.data.artist}/`);
                 setArtist(artistRes.data);
-                const tracksRes = await axios.get('http://127.0.0.1:8000/api/tracks/');
+                const tracksRes = await axios.get('/api/tracks/');
                 setAlbum(albumRes.data);
 
                 const albumTracks = tracksRes.data.filter(track => track.album === parseInt(id));
@@ -117,13 +117,13 @@ const DisplayAlbum = () => {
         <>
             <Navbar />
             <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
-                <img className="w-48 rounded" src={`http://127.0.0.1:8000/media${album.image}`} alt={album.name} />
+                <img className="w-48 rounded" src={`/media${album.image}`} alt={album.name} />
                 <div className="flex flex-col">
                     <p>Album</p>
                     <h2 className="text-5xl font-bold mb-4 md:text-7xl">{album.name}</h2>
                     <h4>{album.release_date}</h4>
                     <p className="mt-1">
-                        <img className="inline-block w-5" src={`http://127.0.0.1:8000/media${artist.image}`} alt={artist.name} />
+                        <img className="inline-block w-5" src={`/media${artist.image}`} alt={artist.name} />
                         <b> {artist.name} </b>
                         • <b>{tracks.length} songs, </b>
                         {calculateTotalDuration()}
@@ -145,7 +145,7 @@ const DisplayAlbum = () => {
                 >
                     <p className="text-white">
                         <b className="mr-4 text-[#a7a7a7]">{index + 1}</b>
-                        <img className="inline w-10 mr-5" src={`http://127.0.0.1:8000/media${item.image}`} alt="" />
+                        <img className="inline w-10 mr-5" src={`/media${item.image}`} alt="" />
                         {item.name}
                     </p>
                     <p className="text-[15px]">{artist.name}</p>

@@ -28,18 +28,18 @@ export const PlayerContextProvider = ({ children }) => {
     useEffect(() => {
         const fetchTracks = async () => {
             try {
-                const tracksResponse = await axios.get("http://127.0.0.1:8000/api/tracks/");
+                const tracksResponse = await axios.get("/api/tracks/");
                 setTracks(tracksResponse.data);
 
-                const artistsResponse = await axios.get("http://127.0.0.1:8000/api/artists/");
+                const artistsResponse = await axios.get("/api/artists/");
                 setArtists(artistsResponse.data);
 
-                const mvResponse = await axios.get("http://127.0.0.1:8000/api/music-videos/");
+                const mvResponse = await axios.get("/api/music-videos/");
                 const mvs = mvResponse.data;
                 const formattedMVs = Array.isArray(mvs)
                     ? mvs.map(mv => ({
                         ...mv,
-                        video_url: `http://127.0.0.1:8000/media${mv.video_file}`,
+                        video_url: `/media${mv.video_file}`,
                     }))
                     : [];
                 setMusicVideos(formattedMVs);
@@ -114,7 +114,7 @@ export const PlayerContextProvider = ({ children }) => {
                 }
 
                 setCurrentTrack(track);
-                audioRef.current.src = `http://127.0.0.1:8000/media${track.file}`;
+                audioRef.current.src = `/media${track.file}`;
                 audioRef.current.load();
                 audioRef.current
                     .play()
@@ -143,7 +143,7 @@ export const PlayerContextProvider = ({ children }) => {
             // Remove the track from history
             setHistory(prev => prev.slice(0, -1));
             setCurrentTrack(prevTrack);
-            audioRef.current.src = `http://127.0.0.1:8000/media${prevTrack.file}`;
+            audioRef.current.src = `/media${prevTrack.file}`;
             audioRef.current.load();
             audioRef.current
                 .play()
@@ -196,7 +196,7 @@ export const PlayerContextProvider = ({ children }) => {
                     setHistory(prev => [...prev, currentTrack]);
                 }
                 setCurrentTrack(nextTrack);
-                audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
+                audioRef.current.src = `/media${nextTrack.file}`;
                 audioRef.current.load();
                 audioRef.current
                     .play()
@@ -252,7 +252,7 @@ export const PlayerContextProvider = ({ children }) => {
                     setHistory(prev => [...prev, currentTrack]);
                 }
                 setCurrentTrack(nextTrack);
-                audioRef.current.src = `http://127.0.0.1:8000/media${nextTrack.file}`;
+                audioRef.current.src = `/media${nextTrack.file}`;
                 audioRef.current.load();
                 audioRef.current
                     .play()

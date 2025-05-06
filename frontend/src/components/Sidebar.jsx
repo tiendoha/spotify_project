@@ -45,7 +45,7 @@ const Sidebar = () => {
                 const userId = localStorage.getItem('user_id');
                 if (!token || !userId) return;
 
-                const response = await axios.get('http://127.0.0.1:8000/api/playlists/', {
+                const response = await axios.get('/api/playlists/', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const userPlaylists = response.data.filter(playlist => playlist.user === parseInt(userId));
@@ -82,7 +82,7 @@ const Sidebar = () => {
         };
 
         try {
-            const response = await axios.post('http://127.0.0.1:8000/api/playlists/', playlistData, {
+            const response = await axios.post('/api/playlists/', playlistData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ const Sidebar = () => {
         };
 
         try {
-            const response = await axios.put(`http://127.0.0.1:8000/api/playlists/${editPlaylistId}/`, playlistData, {
+            const response = await axios.put(`/api/playlists/${editPlaylistId}/`, playlistData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ const Sidebar = () => {
                                     {playlist.image ? (
                                         <img
                                             className="w-12 h-12 rounded"
-                                            src={`http://127.0.0.1:8000/media${playlist.image}`}
+                                            src={`/media${playlist.image}`}
                                             alt={playlist.name}
                                         />
                                     ) : (

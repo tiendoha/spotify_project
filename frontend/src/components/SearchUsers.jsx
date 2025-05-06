@@ -23,7 +23,7 @@ const SearchUsers = () => {
 
   const fetchRecentConversations = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/search/", {
+      const response = await axios.get("/api/search/", {
         headers: { Authorization: `Token ${token}` },
       });
       setRecentMessages(response.data);
@@ -39,7 +39,7 @@ const SearchUsers = () => {
   const handleSearch = async (term) => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/search/${term}/`,
+        `/api/search/${term}/`,
         {
           headers: { Authorization: `Token ${token}` },
         }

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 const AlbumItem = ({ image, name, desc, id, artist_name }) => {
 
     const navigate = useNavigate()
-    const baseUrl = 'http://127.0.0.1:8000/media';
+    const baseUrl = '/media';
     const imageUrl = image ? `${baseUrl}${image}` : '';
 
     return (

@@ -21,7 +21,7 @@ const Display = () => {
       if (!albumId) return;
       try {
         const albumRes = await axios.get(
-          `http://127.0.0.1:8000/api/albums/${albumId}/`
+          `/api/albums/${albumId}/`
         );
         setAlbum(albumRes.data);
       } catch (error) {
@@ -35,7 +35,7 @@ const Display = () => {
     if (isAlbum && album && album.image) {
       const img = new Image();
       img.crossOrigin = "Anonymous";
-      img.src = `http://127.0.0.1:8000/media${album.image}`;
+      img.src = `/media${album.image}`;
       img.onload = () => {
         const colorThief = new ColorThief();
         const [r, g, b] = colorThief.getColor(img);

@@ -4,7 +4,7 @@ import React from 'react';
 const ArtistModal = ({ artist, onClose }) => {
   if (!artist) return null;
 
-  const baseUrl = 'http://127.0.0.1:8000/media';
+  const baseUrl = '/media';
   const imageUrl = artist.image ? `${baseUrl}${artist.image}` : '';
 
   return (
