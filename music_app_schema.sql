@@ -145,6 +145,7 @@ INSERT INTO playlists (id, name, image, user_id) VALUES
 (23, 'Jazz Classics', '/playlists/jazz_classics.jpg', 24),
 (24, 'Pop Hits 2025', '/playlists/pop_hits_2025.jpg', 25),
 (25, 'Rock Revival', '/playlists/rock_revival.jpg', 26);
+SELECT setval('playlists_id_seq', (SELECT MAX(id) FROM playlists) + 1);
 
 -- Playlist Tracks
 INSERT INTO playlist_tracks (id, playlist_id, track_id, track_order) VALUES
