@@ -67,6 +67,7 @@ INSERT INTO artists (id, name, image) VALUES
 (6, 'Adele', '/artists/adele.png'),
 (7, 'Nirvana', '/artists/nirvana.png'),
 (8, 'Ella Fitzgerald', '/artists/ella.png');
+
 -- Albums
 INSERT INTO albums (id, name, release_date, image, artist_id) VALUES
 (1, 'I Can Do It With A Broken Heart', '2020-12-11', '/albums/broken-heart.jpeg', 1),
@@ -428,3 +429,14 @@ INSERT INTO shared_listening_invitations (id, sender_id, receiver_id, track_id, 
 (18, 3, 5, 7, '2025-03-05 10:10:00', '00:02:25', '2025-03-05 10:12:25', 'accepted'),
 (19, 4, 1, 11, '2025-03-05 10:20:00', '00:04:30', '2025-03-05 10:24:30', 'pending'),
 (20, 5, 2, 36, '2025-03-05 10:30:00', '00:01:55', '2025-03-05 10:31:55', 'accepted');
+SELECT setval('artists_id_seq', (SELECT MAX(id) FROM artists) + 1);
+SELECT setval('albums_id_seq', (SELECT MAX(id) FROM albums) + 1);
+SELECT setval('tracks_id_seq', (SELECT MAX(id) FROM tracks) + 1);
+SELECT setval('playlists_id_seq', (SELECT MAX(id) FROM playlists) + 1);
+SELECT setval('playlist_tracks_id_seq', (SELECT MAX(id) FROM playlist_tracks) + 1);
+SELECT setval('followers_id_seq', (SELECT MAX(id) FROM followers) + 1);
+SELECT setval('likes_id_seq', (SELECT MAX(id) FROM likes) + 1);
+SELECT setval('music_videos_id_seq', (SELECT MAX(id) FROM music_videos) + 1);
+SELECT setval('user_albums_id_seq', (SELECT MAX(id) FROM user_albums) + 1);
+SELECT setval('user_album_tracks_id_seq', (SELECT MAX(id) FROM user_album_tracks) + 1);
+SELECT setval('shared_listening_invitations_id_seq', (SELECT MAX(id) FROM shared_listening_invitations) + 1);
